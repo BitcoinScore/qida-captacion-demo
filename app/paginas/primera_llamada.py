@@ -101,15 +101,26 @@ else:
 izq, der = st.columns(2)
 with izq:
     st.markdown("#### La puntuación acierta: curva de ganancia")
+    st.markdown(f"Llamando primero al **30 % de la cola** mejor puntuado se cubre el **{es(cubiertos_30, 0)} % de los contratos**; "
+                f"en orden de llegada, solo el 30 %.")
     fig = go.Figure()
     fig.add_scatter(x=gan["pct_llamadas"], y=gan["pct_contratos"], mode="lines+markers", name="Llamando por puntuación",
                     line=dict(color=graficos.ACENTO, width=3))
     fig.add_scatter(x=[0, 100], y=[0, 100], mode="lines", name="En orden de llegada",
                     line=dict(color=graficos.GRIS, dash="dash"))
-    fig.add_annotation(x=30, y=cubiertos_30, text=f"<b>30 % → {es(cubiertos_30, 0)} %</b>", showarrow=True, arrowhead=0,
-                       ax=-60, ay=-35, font=dict(color=comun.VERDE_TEXTO))
+    # Punto de lectura: llamando al 30 % de la cola, cuántos contratos se cubren por puntuación y al azar
+    fig.add_shape(type="line", x0=30, x1=30, y0=0, y1=cubiertos_30, line=dict(color=graficos.GRIS, dash="dot", width=1))
+    fig.add_shape(type="line", x0=30, x1=30, y0=30, y1=cubiertos_30, line=dict(color=comun.VERDE_TEXTO, width=4))
+    fig.add_scatter(x=[30, 30], y=[cubiertos_30, 30], mode="markers", showlegend=False, hoverinfo="skip",
+                    marker=dict(size=[11, 9], color=[graficos.ACENTO, graficos.GRIS]))
+    fig.add_annotation(x=28, y=cubiertos_30, xanchor="right", showarrow=False, text=f"<b>{es(cubiertos_30, 0)} %</b>",
+                       font=dict(color=comun.VERDE_TEXTO, size=15))
+    fig.add_annotation(x=32, y=30, xanchor="left", showarrow=False, text="30 %", font=dict(color=graficos.GRIS, size=13))
+    fig.add_annotation(x=32, y=(cubiertos_30 + 30) / 2, xanchor="left", showarrow=False,
+                       text=f"<b>+{es(cubiertos_30 - 30, 0)} p. p.</b>", font=dict(color=comun.VERDE_TEXTO, size=13))
     graficos._limpio(fig, 340)
-    fig.update_layout(xaxis=dict(title="% de familias llamadas, de más a menos prometedoras", ticksuffix=" %"),
+    fig.update_layout(xaxis=dict(title="% de familias llamadas, de más a menos prometedoras", ticksuffix=" %",
+                                 range=[-2, 102], tickvals=[0, 20, 30, 40, 60, 80, 100]),
                       yaxis=dict(title="% de los contratos que se cubren", ticksuffix=" %", showgrid=False),
                       legend=dict(orientation="h", y=1.12))
     comun.grafico(fig)
