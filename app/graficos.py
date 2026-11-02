@@ -61,8 +61,15 @@ def embudo_viaje(etapas: list[dict]) -> go.Figure:
                                text=f"<b>▼ {e['perdida']}</b>", font=dict(size=13, color=col))
             fig.add_annotation(x=1.05, y=yc - 0.13, xanchor="left", showarrow=False, align="left",
                                text=e["arreglo"], font=dict(size=12, color=VERDE_TEXTO))
-    fig.update_xaxes(visible=False, range=[-2.7, 2.75])
-    fig.update_yaxes(visible=False, range=[-(len(etapas) * (alto + hueco)) + hueco - 0.1, 0.1])
+    # Barras invisibles encima de cada etapa: hacen que se pueda pulsar (los rectángulos de Plotly no se seleccionan)
+    centros = [-(k * (alto + hueco)) - alto / 2 for k in range(len(etapas))]
+    fig.add_bar(y=centros, x=[2 * max(w, 0.12) for w in ancho], base=[-max(w, 0.12) for w in ancho], orientation="h",
+                width=alto, marker=dict(color="rgba(0,0,0,0)"), showlegend=False,
+                selected=dict(marker=dict(opacity=1)), unselected=dict(marker=dict(opacity=1)),
+                customdata=[e["nombre"] for e in etapas], hovertemplate="%{customdata}: pulsa para ver el detalle<extra></extra>")
+    fig.update_layout(clickmode="event+select", dragmode=False, hoverlabel=dict(bgcolor="white"))
+    fig.update_xaxes(visible=False, range=[-2.7, 2.75], fixedrange=True)
+    fig.update_yaxes(visible=False, range=[-(len(etapas) * (alto + hueco)) + hueco - 0.1, 0.1], fixedrange=True)
     return _limpio(fig, 95 * len(etapas) + 40)
 
 

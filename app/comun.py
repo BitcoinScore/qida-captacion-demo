@@ -61,7 +61,23 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 .kpi .valor {{white-space: nowrap; font-size: var(--tam-valor, 2.4rem); font-weight: 700; color: #1F2B2A; line-height: 1.1;
   letter-spacing: -.01em;}}
 .kpi .tend {{font-size: .82rem; color: {GRIS_TEXTO}; margin-bottom: 2px;}}
-.kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO}; margin-top: auto;}}
+.kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
+.kpi .mas {{margin-top: auto; padding-top: 8px; font-size: .8rem; font-weight: 600; color: {VERDE_TEXTO};}}
+/* Tarjetas pulsables: cada una es un contenedor con un botón invisible encima que abre su ventana de detalle */
+[class*="st-key-filai-"] {{display: grid !important; gap: 12px !important; align-items: stretch;}}
+[class*="st-key-filai-"] > div {{display: flex; flex-direction: column;}}
+@media (max-width: 760px) {{[class*="st-key-filai-"] {{grid-template-columns: repeat(2, 1fr) !important;}}}}
+[class*="st-key-tarjeta-"] {{position: relative; gap: 0 !important; flex: 1 1 auto;}}
+/* la tarjeta llena su celda: toda la cadena de envoltorios de Streamlit hasta .kpi se estira */
+[class*="st-key-tarjeta-"] div:has(.kpi) {{display: flex !important; flex-direction: column; flex: 1 1 auto; width: 100%;
+  margin: 0 !important;}}
+[class*="st-key-tarjeta-"] .kpi {{flex: 1 1 auto;}}
+[class*="st-key-tarjeta-"] .kpi {{transition: border-color .15s, box-shadow .15s;}}
+[class*="st-key-tarjeta-"]:hover .kpi {{border-color: {VERDE_TEXTO}; box-shadow: 0 6px 18px rgba(0,64,57,.10);}}
+[class*="st-key-tarjeta-"]:hover .kpi.alerta {{border-color: {NARANJA};}}
+[class*="st-key-tarjeta-"]:has(button:focus-visible) .kpi {{outline: 3px solid {VERDE_TEXTO}; outline-offset: 2px;}}
+[class*="st-key-detalle-"] {{position: absolute !important; inset: 0; z-index: 3; width: 100% !important; height: 100%;}}
+[class*="st-key-detalle-"] button {{width: 100%; height: 100%; opacity: 0; cursor: pointer;}}
 .kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
 .kpi.alerta .valor, .kpi.mal .valor {{color: {NARANJA_TEXTO};}}
@@ -121,7 +137,8 @@ def nota(texto: str, tipo: str = "clave") -> None:
 
 def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None = None, mejor_si_sube: bool = True,
         unidad_tendencia: str = " p. p.", alerta: bool = False, icono: str | None = None,
-        frente: str = "frente al periodo anterior", estado: str | None = None, texto_estado: str = "") -> None:
+        frente: str = "frente al periodo anterior", estado: str | None = None, texto_estado: str = "",
+        detalle=None) -> None:
     """Tarjeta de KPI: etiqueta, valor grande, variación frente al mes anterior y contexto.
 
     La variación se colorea según mejore o empeore; `alerta=True` marca la tarjeta entera cuando el valor está lejos del
@@ -135,10 +152,14 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
     simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
     estado = "alerta" if alerta else estado  # bien · mal · alerta · curso · None (sin objetivo o en curso: cifra en negro)
     chip = f"<span class='estado'>{texto_estado}</span>" if estado and texto_estado else ""
-    col.markdown(f"<div class='kpi{' ' + estado if estado else ''}'><div class='cabeza'>{simbolo}"
+    mas = "<div class='mas'>Ver detalle ›</div>" if detalle else ""
+    html = (f"<div class='kpi{' ' + estado if estado else ''}'><div class='cabeza'>{simbolo}"
                  f"<div class='etiqueta'>{etiqueta}</div></div>"
-                 f"<div class='linea'><div class='valor'>{valor}</div>{chip}</div>{flecha}<div class='sub'>{sub}</div></div>",
-                 unsafe_allow_html=True)
+            f"<div class='linea'><div class='valor'>{valor}</div>{chip}</div>{flecha}<div class='sub'>{sub}</div>{mas}</div>")
+    if isinstance(col, Fila):
+        col.agregar(html, detalle, etiqueta)
+    else:
+        col.markdown(html, unsafe_allow_html=True)
 
 
 def _asegurar_base() -> None:
@@ -213,16 +234,36 @@ class Fila:
     """Fila de tarjetas KPI que miden lo mismo: se pinta como una sola rejilla HTML (las columnas de Streamlit no se
     estiran entre sí). Uso: `fila = comun.Fila(); comun.kpi(fila, ...); ...; fila.pintar()`."""
 
-    def __init__(self):
+    def __init__(self, clave: str = "fila"):
+        self.clave = clave
         self.tarjetas: list[str] = []
+        self.detalles: list = []
+        self.nombres: list[str] = []
 
-    def markdown(self, html: str, unsafe_allow_html: bool = True) -> None:  # lo llama kpi()
+    def agregar(self, html: str, detalle=None, nombre: str = "") -> None:  # lo llama kpi()
         self.tarjetas.append(html)
+        self.detalles.append(detalle)
+        self.nombres.append(nombre)
 
     def pintar(self) -> None:
         n = len(self.tarjetas)
         # Cuantas menos tarjetas, más grande la cifra (si no, la caja se queda vacía)
         tam = {1: "3.6rem", 2: "3.4rem", 3: "3rem", 4: "2.7rem"}.get(n, "2.6rem")
+        if any(self.detalles):
+            tres = (f"@media (max-width: 1650px) {{.st-key-filai-{self.clave} {{grid-template-columns: repeat(3, 1fr) !important}}}}"
+                    if n >= 5 else "")
+            st.markdown(f"<style>.st-key-filai-{self.clave} {{grid-template-columns: repeat({n}, 1fr); --tam-valor: {tam}}}"
+                        f"{tres}</style>", unsafe_allow_html=True)
+            abrir = None
+            with st.container(key=f"filai-{self.clave}"):
+                for i, (html, detalle, nombre) in enumerate(zip(self.tarjetas, self.detalles, self.nombres)):
+                    with st.container(key=f"tarjeta-{self.clave}-{i}"):
+                        st.markdown(html, unsafe_allow_html=True)
+                        if detalle and st.button(f"Ver detalle de {nombre}", key=f"detalle-{self.clave}-{i}"):
+                            abrir = detalle
+            if abrir:
+                abrir()
+            return
         st.markdown(f"<div class='fila-kpi-caja'><div class='fila-kpi{' ancha' if n >= 5 else ''}' "
                     f"style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam}'>" + "".join(self.tarjetas) + "</div></div>",
                     unsafe_allow_html=True)

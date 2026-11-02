@@ -4,6 +4,7 @@ from datetime import date, timedelta
 import streamlit as st
 
 import comun
+import detalles
 import graficos
 from comun import es
 from motor import metricas
@@ -138,25 +139,28 @@ def estado(valor, objetivo, mejor_si_sube=True):
 frente = {"hoy": "frente a ayer", "ayer": "frente al día anterior", "semana": "frente a la semana anterior",
           "mes_en_curso": "frente a los mismos días del mes anterior", 1: "frente al mes anterior",
           12: "frente al año anterior"}.get(opcion, "frente al periodo anterior")
-fila = comun.Fila()
+fila = comun.Fila("viaje")
 k = [fila] * 6
 comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
           100 * (act["familias"] / ant["familias"] - 1) if comparable and ant["familias"] else None, unidad_tendencia=" %",
-          icono="groups", frente=frente)
+          icono="groups", frente=frente, detalle=lambda: detalles.piden_ayuda(p_desde, p_hasta, a_desde, a_hasta))
 comun.kpi(k[1], "Piden ayuda de noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
-          var(act["noche"], ant["noche"]), mejor_si_sube=False, icono="dark_mode", frente=frente)
+          var(act["noche"], ant["noche"]), mejor_si_sube=False, icono="dark_mode", frente=frente,
+          detalle=lambda: detalles.noche(p_desde, p_hasta))
 lejos = act["rapidas"] < OBJ_LLAMADAS / 2
 e = estado(act["rapidas"], OBJ_LLAMADAS)
 comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", f"objetivo: {OBJ_LLAMADAS} %",
           var(act["rapidas"], ant["rapidas"]), alerta=lejos, estado=e[0],
-          texto_estado="muy lejos del objetivo" if lejos else e[1], icono="phone_in_talk", frente=frente)
+          texto_estado="muy lejos del objetivo" if lejos else e[1], icono="phone_in_talk", frente=frente,
+          detalle=lambda: detalles.llamadas(p_desde, p_hasta))
 # Contratan y coste: con el periodo en curso no se juzgan contra el objetivo (aún faltan contratos), pero se enseñan y se
 # comparan con el periodo anterior a la misma altura
 e = estado(act["conversion"], OBJ_CONVERSION) if madura else ("curso", "en curso")
 comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %",
           f"{es(contratos, 0)} contratos · objetivo: {OBJ_CONVERSION} %" if madura else
           f"{es(contratos, 0)} contratos hasta hoy · {es(en_plazo, 0)} familias aún en plazo",
-          var(act["conversion"], ant["conversion"]), estado=e[0], texto_estado=e[1], icono="handshake", frente=frente)
+          var(act["conversion"], ant["conversion"]), estado=e[0], texto_estado=e[1], icono="handshake", frente=frente,
+          detalle=lambda: detalles.contratan(p_desde, p_hasta))
 hay_cac = contratos > 0 and not math.isnan(act["cac"])
 if not hay_cac:
     e = (None, "")
@@ -167,8 +171,9 @@ else:
 comun.kpi(k[4], "Coste por contrato", es(act["cac"], 0, " €") if hay_cac else "—",
           f"gasto ÷ contratos · objetivo: < {OBJ_COSTE} €" if hay_cac else "aún sin contratos en el periodo",
           var(act["cac"], ant["cac"]) if hay_cac and ant["contratos"] else None, mejor_si_sube=False, unidad_tendencia=" €",
-          estado=e[0], texto_estado=e[1], icono="euro", frente=frente)
-comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"histórico · cada euro vuelve ×{es(ltv_cac)}", icono="favorite")
+          estado=e[0], texto_estado=e[1], icono="euro", frente=frente, detalle=lambda: detalles.coste(p_desde, p_hasta))
+comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"histórico · cada euro vuelve ×{es(ltv_cac)}", icono="favorite",
+          detalle=detalles.siguen)
 fila.pintar()
 st.caption("Objetivos de ejemplo. Verde: cumple su objetivo; naranja: no lo cumple (con borde, si está muy lejos); negro: sin "
            "objetivo o «en curso», es decir, con familias que entraron hace menos de 30 días y aún pueden contratar. Las "
@@ -199,8 +204,16 @@ ETAPAS = [
      "arreglo": "→ Seguimiento y pedir que nos recomienden"},
     {"nombre": "Siguen al año", "valor": round(contratos * r12), "estimado": True},
 ]
-comun.grafico(graficos.embudo_viaje(ETAPAS))
-st.caption("Cada paso cuenta si ocurre en los 30 días siguientes a pedir ayuda (o hasta hoy, si aún no han pasado). Las dos "
+# Cada etapa se puede pulsar: abre quién se queda en ella y por qué (la clave cambia tras abrir, para que no se reabra sola)
+n_clic = st.session_state.setdefault("embudo_clic", 0)
+evento = st.plotly_chart(graficos.embudo_viaje(ETAPAS), width="stretch", on_select="rerun", selection_mode="points",
+                         key=f"embudo-{n_clic}", config={"displayModeBar": False, "scrollZoom": False})
+puntos = evento.selection.points if evento and evento.selection else []
+if puntos:
+    st.session_state["embudo_clic"] = n_clic + 1
+    detalles.etapa(int(puntos[0]["point_index"]), p_desde, p_hasta)
+st.caption("Pulsa una etapa para ver quién se queda en ella y por qué. Cada paso cuenta si ocurre en los 30 días siguientes a "
+           "pedir ayuda (o hasta hoy, si aún no han pasado). Las dos "
            "últimas etapas (trazo discontinuo) son estimaciones con la curva de permanencia histórica.")
 
 # ── 3. El viaje, etapa a etapa (service blueprint) ────────────────────────────────────────────────────────────
