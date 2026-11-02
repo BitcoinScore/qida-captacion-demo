@@ -103,7 +103,7 @@ with st.container():
 .rent tr:first-child th:first-child {{border-bottom:none !important}}
 .rent td {{padding:10px; border-bottom:1px solid #EEF3F3 !important; font-variant-numeric:tabular-nums; vertical-align:middle}}
 .rent td.canal {{font-weight:600; color:{comun.VERDE}; white-space:nowrap}}
-.rent td:not(.canal), .rent tr:nth-child(2) th:not(:first-child) {{text-align:center}}
+.rent td, .rent th {{text-align:center !important}}
 .rent .barra {{justify-content:center}}
 .rent .poco {{display:inline-block; margin-top:3px; font-size:.72rem; font-weight:500; color:{comun.GRIS_TEXTO}; border:1px solid {comun.BORDE};
   border-radius:99px; padding:1px 7px}}
