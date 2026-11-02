@@ -57,7 +57,8 @@ if all(d.empty for d in datos.values()):
     comun.nota("Todavía no hay resultados. Ejecuta `python eval/ejecutar.py`.", "alerta")
     st.stop()
 
-c1, c2, c3 = st.columns(3)
+fila = comun.Fila()
+c1 = c2 = c3 = fila
 for col, (clave, titulo, sub) in zip((c1, c2, c3), (
         ((CONJUNTOS[2][0], "v3"), "v3 con casos nuevos", "la nota que cuenta"),
         ((CONJUNTOS[1][0], "v2"), "v2 con casos nuevos", "antes de la regla de fidelidad"),
@@ -67,6 +68,7 @@ for col, (clave, titulo, sub) in zip((c1, c2, c3), (
         comun.kpi(col, titulo, f"{es(p, 0)} %", f"{sub} · intervalo del 95 %: {es(lo, 0)}–{es(hi, 0)} % · "
                                                f"{n} conversaciones")
 
+fila.pintar()
 st.markdown("#### Respuestas correctas por versión (reglas + revisor automático), con intervalo del 95 %")
 CORTO = {CONJUNTOS[0][0]: "casos de ajuste", CONJUNTOS[1][0]: "casos nuevos 1", CONJUNTOS[2][0]: "casos nuevos 2"}
 fig = go.Figure()

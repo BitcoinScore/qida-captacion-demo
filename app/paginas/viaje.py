@@ -39,7 +39,8 @@ comun.cabecera("Viaje de la familia", "La mayor fuga está entre la primera llam
 # ── 1. Lo primero que se mira: seis indicadores del último mes completo ───────────────────────────────────────────
 st.markdown(f"<div class='seccion'>{comun.mes_es('2026-09').capitalize()} · último mes con 30 días de margen</div>",
             unsafe_allow_html=True)
-k = st.columns(6)
+fila = comun.Fila()
+k = [fila] * 6
 comun.kpi(k[0], "Familias que piden ayuda", es(sep["familias"], 0), "sin duplicados",
           100 * (sep["familias"] / ago["familias"] - 1), unidad_tendencia=" %")
 comun.kpi(k[1], "Piden ayuda de noche", f"{es(pct_noche, 0)} %", "fuera del horario de atención")
@@ -50,6 +51,7 @@ comun.kpi(k[3], "Contratan en 30 días", f"{es(sep['conversion'])} %", "objetivo
 comun.kpi(k[4], "Coste de captar una familia", es(sep["cac"], 0, " €"), "CAC total del mes",
           sep["cac"] - ago["cac"], mejor_si_sube=False, unidad_tendencia=" €")
 comun.kpi(k[5], "Siguen con Qida al año", f"{es(100 * r12, 0)} %", f"cada euro invertido vuelve ×{es(ltv_cac)}")
+fila.pintar()
 st.caption("Objetivos de ejemplo. Verde: mejora; naranja: empeora o está lejos del objetivo.")
 
 # ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -135,13 +137,15 @@ extra_mes = noche_mes * (con_dia / n_dia - con_noche / n_noche)
 # Tamaño del A/B: familias de noche por grupo para detectar la diferencia de llegada a valoración (95 %, potencia 80 %)
 d = tasa_dia - tasa_noche
 n_grupo = math.ceil((1.96 + 0.84) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
-c1, c2, c3 = st.columns(3)
+fila = comun.Fila()
+c1 = c2 = c3 = fila
 comun.kpi(c1, "Si la noche convirtiera como el día", f"+{es(extra_mes * 12, 0)} familias al año",
           f"de noche contrata el {es(100 * con_noche / n_noche)} %; de día, el {es(100 * con_dia / n_dia)} %")
 comun.kpi(c2, "Margen que supondría", f"~{es(extra_mes * 12 * ltv_medio / 1000, 0)} mil €/año",
           f"valor medio de una familia en 12 meses: {es(ltv_medio, 0, ' €')} (margen supuesto del 30 %)")
 comun.kpi(c3, "Tamaño del A/B", f"{es(n_grupo, 0)} familias por grupo",
           f"para ver la diferencia en llegada a la valoración ({es(100 * tasa_noche, 0)} % → {es(100 * tasa_dia, 0)} %)")
+fila.pintar()
 comun.nota("**Cómo lo probaría:** asistente sí/no en semanas alternas en una ciudad. Métrica principal: familias de noche "
            "que llegan a la valoración en 30 días; de control: coste de captar una familia y permanencia a 3 meses. "
            "Es una hipótesis: que la noche convierta peor es una asociación en los datos, no una causa probada.", "neutra")

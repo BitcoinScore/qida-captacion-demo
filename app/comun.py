@@ -36,8 +36,11 @@ h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: 
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
 [data-testid="stSidebar"] {{background: {FONDO}; border-right: 1px solid {BORDE};}}
 [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {{color: {GRIS_TEXTO} !important;}}
-.kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;}}
-.kpi .etiqueta {{font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
+.kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;
+  box-sizing: border-box; display: flex; flex-direction: column;}}
+.fila-kpi {{display: grid; gap: 12px; align-items: stretch; margin-bottom: 4px;}}
+@media (max-width: 900px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
+.kpi .etiqueta {{min-height: 2.8em; line-height: 1.4; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
 .kpi .valor {{font-size: 2rem; font-weight: 700; color: {VERDE}; line-height: 1.15; margin: 4px 0;}}
 .kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
@@ -172,4 +175,19 @@ def selector_ciudades() -> list[str]:
 def grafico(fig) -> None:
     """Pinta un gráfico Plotly a todo el ancho y sin la barra de herramientas (zoom, cámara…), que distrae."""
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False, "scrollZoom": False})
+
+
+class Fila:
+    """Fila de tarjetas KPI que miden lo mismo: se pinta como una sola rejilla HTML (las columnas de Streamlit no se
+    estiran entre sí). Uso: `fila = comun.Fila(); comun.kpi(fila, ...); ...; fila.pintar()`."""
+
+    def __init__(self):
+        self.tarjetas: list[str] = []
+
+    def markdown(self, html: str, unsafe_allow_html: bool = True) -> None:  # lo llama kpi()
+        self.tarjetas.append(html)
+
+    def pintar(self) -> None:
+        st.markdown(f"<div class='fila-kpi' style='grid-template-columns:repeat({len(self.tarjetas)}, 1fr)'>"
+                    + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
 

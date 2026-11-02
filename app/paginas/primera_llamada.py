@@ -32,7 +32,8 @@ comun.cabecera("Cola de llamadas", f"Llamando primero al 30 % mejor puntuado se 
                "Ordena, no descarta: todas las familias reciben su llamada.")
 
 ultimo, previo = velocidad.iloc[-1], velocidad.iloc[-2]
-k1, k2, k3 = st.columns(3)
+fila = comun.Fila()
+k1 = k2 = k3 = fila
 comun.kpi(k1, "Llamadas en menos de 1 h", f"{es(ultimo['pct_menos_1h'], 0)} %",
           f"{comun.mes_es(ultimo['mes'])} · objetivo: 50 %", ultimo["pct_menos_1h"] - previo["pct_menos_1h"],
           alerta=ultimo["pct_menos_1h"] < 25)
@@ -41,6 +42,7 @@ comun.kpi(k2, "Espera media hasta la primera llamada", es(ultimo["horas_media"],
           mejor_si_sube=False, unidad_tendencia=" h")
 comun.kpi(k3, "Contratos cubiertos con el 30 % mejor puntuado", f"{es(cubiertos_30, 0)} %",
           "frente al 30 % si se llama en orden de llegada")
+fila.pintar()
 
 # ── La cola de hoy ──────────────────────────────────────────────────────────────────────────────────────────────
 NOMBRES = ["Lucía", "Javier", "Carmen", "Antonio", "Marta", "Pablo", "Elena", "Jorge", "Rosa", "Miguel", "Ana", "David",
