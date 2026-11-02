@@ -113,11 +113,12 @@ with izq:
     fig.add_shape(type="line", x0=30, x1=30, y0=30, y1=cubiertos_30, line=dict(color=comun.VERDE_TEXTO, width=4))
     fig.add_scatter(x=[30, 30], y=[cubiertos_30, 30], mode="markers", showlegend=False, hoverinfo="skip",
                     marker=dict(size=[11, 9], color=[graficos.ACENTO, graficos.GRIS]))
-    fig.add_annotation(x=28, y=cubiertos_30, xanchor="right", showarrow=False, text=f"<b>{es(cubiertos_30, 0)} %</b>",
-                       font=dict(color=comun.VERDE_TEXTO, size=15))
-    fig.add_annotation(x=32, y=30, xanchor="left", showarrow=False, text="30 %", font=dict(color=graficos.GRIS, size=13))
-    fig.add_annotation(x=32, y=(cubiertos_30 + 30) / 2, xanchor="left", showarrow=False,
+    fig.add_annotation(x=28, y=cubiertos_30 + 3, xanchor="right", yanchor="bottom", showarrow=False,
+                       text=f"<b>{es(cubiertos_30, 0)} %</b>", font=dict(color=comun.VERDE_TEXTO, size=15), bgcolor="white")
+    fig.add_annotation(x=32, y=(cubiertos_30 + 30) / 2 + 7, xanchor="left", showarrow=False,
                        text=f"<b>+{es(cubiertos_30 - 30, 0)} p. p.</b>", font=dict(color=comun.VERDE_TEXTO, size=13))
+    fig.add_annotation(x=32, y=28, xanchor="left", yanchor="top", showarrow=False, text="30 %",
+                       font=dict(color=graficos.GRIS, size=13), bgcolor="white")
     graficos._limpio(fig, 340)
     fig.update_layout(xaxis=dict(title="% de familias llamadas, de más a menos prometedoras", ticksuffix=" %",
                                  range=[-2, 102], tickvals=[0, 20, 30, 40, 60, 80, 100]),

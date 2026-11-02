@@ -162,12 +162,33 @@ with st.container():
 st.divider()
 st.subheader("5. Atribución")
 with st.container():
-    st.markdown("**Contratos por canal según el modelo de atribución**")
-    st.dataframe(atrib.rename(columns={"contratos_ultimo_contacto": "último contacto (el que usamos)",
-                                       "contratos_primer_contacto": "primer contacto"}),
-                 hide_index=True, width="stretch")
-    st.caption("El 8 % de las familias deja sus datos dos veces por canales distintos. Con el primer contacto, Meta y el "
-               "contenido ganan peso; con el último, los canales que cierran. La elección se declara, no se esconde.")
+    st.markdown("**¿A qué canal se le apunta cada contrato?** Una de cada doce familias deja sus datos dos veces, por "
+                "canales distintos (por ejemplo, primero descarga el menú y una semana después llama). Según a qué canal "
+                "se le apunte el contrato, cambia lo que parece rendir cada uno.")
+    a = atrib.rename(columns={"contratos_ultimo_contacto": "ultimo", "contratos_primer_contacto": "primero"})
+    a["dif"] = a["primero"] - a["ultimo"]
+    a = a.sort_values("ultimo")
+    fig = go.Figure()
+    for _, f in a.iterrows():
+        fig.add_shape(type="line", x0=f["ultimo"], x1=f["primero"], y0=f["canal"], y1=f["canal"],
+                      line=dict(color=graficos.PERDIDA, width=6))
+    fig.add_scatter(x=a["ultimo"], y=a["canal"], mode="markers", name="Último contacto (el que usamos)",
+                    marker=dict(size=13, color=graficos.ACENTO))
+    fig.add_scatter(x=a["primero"], y=a["canal"], mode="markers", name="Primer contacto",
+                    marker=dict(size=13, color="white", line=dict(color=graficos.MEDIO, width=2.5)))
+    fig.add_scatter(x=a[["ultimo", "primero"]].max(axis=1), y=a["canal"], mode="text", showlegend=False, hoverinfo="skip",
+                    textposition="middle right",
+                    text=[f"   {es(u, 0)} → {es(p_, 0)}  <b style='color:{comun.VERDE_TEXTO if d > 0 else comun.NARANJA_TEXTO if d < 0 else graficos.GRIS}'>"
+                          f"({'+' if d > 0 else ''}{es(d, 0)})</b>" for u, p_, d in zip(a["ultimo"], a["primero"], a["dif"])])
+    graficos._limpio(fig, 60 + 46 * len(a))
+    fig.update_layout(xaxis=dict(title="contratos apuntados al canal", range=[0, a[["ultimo", "primero"]].max().max() * 1.3]),
+                      yaxis_title=None, legend=dict(orientation="h", y=1.08, x=0))
+    comun.grafico(fig)
+    sube = a.loc[a["dif"].idxmax()]
+    comun.nota(f"**Lectura:** con el primer contacto, **{sube['canal']}** pasa de {es(sube['ultimo'], 0)} a "
+               f"{es(sube['primero'], 0)} contratos: atrae familias que acaban cerrando por otro canal. Por eso no se "
+               "recorta un canal solo porque «no cierra»: se mira también qué familias trae. Aquí se usa el último "
+               "contacto, y se dice.", "neutra")
 
 with st.expander("Datos y consultas"):
     st.dataframe(eco.drop(columns=["ic_bajo", "ic_alto"]), hide_index=True, width="stretch")
