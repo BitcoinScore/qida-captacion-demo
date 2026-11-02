@@ -42,3 +42,11 @@ def test_economia_por_canal(con):
 def test_kpis_mes(con):
     k = metricas.kpis_mes(con, "2026-09")
     assert k["familias"] > 0 and 0 < k["conversion"] < 50 and k["cac"] > 0
+
+
+def test_kpis_periodo_madurez(con):
+    reciente = metricas.kpis_periodo(con, "2026-10-02", "2026-10-31")
+    cerrado = metricas.kpis_periodo(con, "2026-08-01", "2026-08-30")
+    assert reciente["familias"] > 0 and reciente["dias"] == 30
+    assert not reciente["madura"] and cerrado["madura"]
+    assert reciente["conversion"] < cerrado["conversion"]  # aún no han tenido tiempo de contratar

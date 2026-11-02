@@ -1,4 +1,5 @@
 import math
+from datetime import date, timedelta
 
 import streamlit as st
 
@@ -6,6 +7,18 @@ import comun
 import graficos
 from comun import es
 from motor import metricas
+
+ULTIMO_DATO = date(2026, 10, 31)  # «hoy» en la demo: último día con datos
+periodo = st.sidebar.date_input("Periodo de los indicadores", value=(ULTIMO_DATO - timedelta(days=29), ULTIMO_DATO),
+                                min_value=date(2025, 5, 1), max_value=ULTIMO_DATO, format="DD/MM/YYYY",
+                                help="Por defecto, los últimos 30 días. Se compara con el periodo anterior de la misma duración.")
+if not isinstance(periodo, tuple) or len(periodo) != 2:
+    comun.nota("Elige la fecha de inicio y la de fin del periodo en la barra lateral.", "alerta")
+    st.stop()
+p_desde, p_hasta = periodo
+duracion = (p_hasta - p_desde).days + 1
+a_hasta = p_desde - timedelta(days=1)
+a_desde = a_hasta - timedelta(days=duracion - 1)
 
 with comun.conexion() as con:
     familias, contactadas, valoraciones, contratos, contactos, desde, hasta, n_meses = con.execute(
@@ -22,7 +35,8 @@ with comun.conexion() as con:
            LEFT JOIN valoraciones_30d v ON v.lead_id = c.id LEFT JOIN altas_30d a ON a.lead_id = c.id
            GROUP BY c.fuera_horario""")}
     km = metricas.kaplan_meier(metricas.duraciones(con)).set_index("mes")["pct_siguen"]
-    sep, ago = metricas.kpis_mes(con, "2026-09"), metricas.kpis_mes(con, "2026-08")
+    act = metricas.kpis_periodo(con, p_desde.isoformat(), p_hasta.isoformat())
+    ant = metricas.kpis_periodo(con, a_desde.isoformat(), a_hasta.isoformat())
     eco = metricas.economia_por_canal(con, comun.CIUDADES)
 r3, r12 = km[3] / 100, km[12] / 100
 ltv_medio = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["contratos"].sum()
@@ -36,23 +50,37 @@ comun.cabecera("Viaje de la familia", "La mayor fuga está entre la primera llam
                f"De cada 100 familias con las que habla un asesor/a familiar, solo {es(100 * valoraciones / contactadas, 0)} "
                "llegan a la valoración. Y casi 4 de cada 10 piden ayuda cuando no hay nadie al teléfono.")
 
-# ── 1. Lo primero que se mira: seis indicadores del último mes completo ───────────────────────────────────────────
-st.markdown(f"<div class='seccion'>{comun.mes_es('2026-09').capitalize()} · último mes con 30 días de margen</div>",
-            unsafe_allow_html=True)
+# ── 1. Lo primero que se mira: seis indicadores del periodo elegido ───────────────────────────────────────────────
+def corta(d: date) -> str:
+    return f"{d.day} {comun.MESES[d.month - 1][:3]} {d.year}"
+
+
+st.markdown(f"<div class='seccion'>{corta(p_desde)} – {corta(p_hasta)} · {duracion} días · frente a los {duracion} días "
+            "anteriores</div>", unsafe_allow_html=True)
+if act["familias"] == 0:
+    comun.nota("No hay familias en ese periodo. Elige otras fechas.", "alerta")
+    st.stop()
+provisional = not act["madura"]
 fila = comun.Fila()
 k = [fila] * 6
-comun.kpi(k[0], "Piden ayuda", es(sep["familias"], 0), "familias, sin duplicados",
-          100 * (sep["familias"] / ago["familias"] - 1), unidad_tendencia=" %", icono="groups")
-comun.kpi(k[1], "De noche", f"{es(pct_noche, 0)} %", "fuera del horario de atención", icono="dark_mode")
-comun.kpi(k[2], "Llamadas en < 1 h", f"{es(sep['rapidas'], 0)} %", "objetivo: 50 %",
-          sep["rapidas"] - ago["rapidas"], alerta=sep["rapidas"] < 25, icono="phone_in_talk")
-comun.kpi(k[3], "Contratan", f"{es(sep['conversion'])} %", "en 30 días · objetivo: 15 %",
-          sep["conversion"] - ago["conversion"], icono="handshake")
-comun.kpi(k[4], "Coste por familia", es(sep["cac"], 0, " €"), "CAC total del mes",
-          sep["cac"] - ago["cac"], mejor_si_sube=False, unidad_tendencia=" €", icono="euro")
-comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"cada euro invertido vuelve ×{es(ltv_cac)}", icono="favorite")
+comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
+          100 * (act["familias"] / ant["familias"] - 1) if ant["familias"] else None, unidad_tendencia=" %", icono="groups")
+comun.kpi(k[1], "De noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
+          act["noche"] - ant["noche"], mejor_si_sube=False, icono="dark_mode")
+comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", "objetivo: 50 %",
+          act["rapidas"] - ant["rapidas"], alerta=act["rapidas"] < 25, icono="phone_in_talk")
+comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %",
+          "provisional: aún pueden contratar" if provisional else "en 30 días · objetivo: 15 %",
+          None if provisional else act["conversion"] - ant["conversion"], icono="handshake")
+comun.kpi(k[4], "Coste por familia", es(act["cac"], 0, " €"),
+          "provisional: faltan contratos por llegar" if provisional else "CAC total del periodo",
+          None if provisional else act["cac"] - ant["cac"], mejor_si_sube=False, unidad_tendencia=" €", icono="euro")
+comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"histórico · cada euro vuelve ×{es(ltv_cac)}", icono="favorite")
 fila.pintar()
-st.caption("Objetivos de ejemplo. Verde: mejora; naranja: empeora o está lejos del objetivo.")
+st.caption("Objetivos de ejemplo. Verde: mejora; naranja: empeora o está lejos del objetivo. "
+           + ("Las familias de los últimos 30 días aún pueden contratar: conversión y coste son provisionales y no se "
+              "comparan. " if provisional else "")
+           + "La permanencia es histórica (hacen falta meses para medirla).")
 
 # ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
 st.markdown("#### Dónde se pierden las familias")

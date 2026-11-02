@@ -84,6 +84,42 @@ def kpis_mes(con: sqlite3.Connection, mes: str) -> dict:
     }
 
 
+def kpis_periodo(con: sqlite3.Connection, desde: str, hasta: str) -> dict:
+    """KPIs de las familias que pidieron ayuda entre `desde` y `hasta` (AAAA-MM-DD, ambos incluidos).
+
+    `madura` dice si todas han tenido ya 30 días para contratar; si no, conversión y coste por contrato son provisionales.
+    El gasto mensual se reparte por días.
+    """
+    familias, noche, llamadas, rapidas, valoraciones, contratos = con.execute(
+        """SELECT COUNT(*), SUM(f.fuera_horario), COUNT(ll.lead_id),
+                  SUM(CASE WHEN (julianday(ll.fecha_primera_llamada) - julianday(f.fecha_entrada)) * 1440 < 60 THEN 1 ELSE 0 END),
+                  COUNT(v.lead_id), COUNT(a.lead_id)
+           FROM familias f
+           LEFT JOIN llamadas_30d ll    ON ll.lead_id = f.id
+           LEFT JOIN valoraciones_30d v ON v.lead_id = f.id
+           LEFT JOIN altas_30d a        ON a.lead_id = f.id
+           WHERE date(f.fecha_entrada) BETWEEN ? AND ?""", (desde, hasta)).fetchone()
+    d0, d1 = pd.Timestamp(desde), pd.Timestamp(hasta)
+    gasto = 0.0
+    for mes, importe in con.execute("SELECT mes, SUM(importe) FROM gasto GROUP BY mes"):
+        ini = pd.Timestamp(mes + "-01")
+        fin = ini + pd.offsets.MonthEnd(0)
+        solape = (min(fin, d1) - max(ini, d0)).days + 1
+        if solape > 0:
+            gasto += importe * solape / ((fin - ini).days + 1)
+    return {
+        "familias": familias,
+        "noche": 100 * (noche or 0) / familias if familias else 0,
+        "rapidas": 100 * (rapidas or 0) / llamadas if llamadas else 0,
+        "valoracion": 100 * valoraciones / familias if familias else 0,
+        "conversion": 100 * contratos / familias if familias else 0,
+        "contratos": contratos,
+        "cac": gasto / contratos if contratos else float("nan"),
+        "madura": (pd.Timestamp(CORTE) - d1).days >= 30,
+        "dias": (d1 - d0).days + 1,
+    }
+
+
 def economia_por_canal(con: sqlite3.Connection, ciudades: list[str], desde: str = "2025-05") -> pd.DataFrame:
     """Por canal: familias, contratos, gasto, coste por familia y por valoración, CAC de pago y total, LTV a 12 meses
     (margen supuesto), LTV:CAC y meses para recuperar el CAC. `desde`: primer mes de la cohorte (AAAA-MM).

@@ -109,7 +109,8 @@ def nota(texto: str, tipo: str = "clave") -> None:
 
 
 def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None = None, mejor_si_sube: bool = True,
-        unidad_tendencia: str = " p. p.", alerta: bool = False, icono: str | None = None) -> None:
+        unidad_tendencia: str = " p. p.", alerta: bool = False, icono: str | None = None,
+        frente: str = "frente al periodo anterior") -> None:
     """Tarjeta de KPI: etiqueta, valor grande, variación frente al mes anterior y contexto.
 
     La variación se colorea según mejore o empeore; `alerta=True` marca la tarjeta entera cuando el valor está lejos del
@@ -119,7 +120,7 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
     if tendencia is not None and abs(tendencia) >= 0.05:
         mejora = (tendencia > 0) == mejor_si_sube
         flecha = (f"<span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
-                  f"{es(abs(tendencia))}{unidad_tendencia}</span> frente al mes anterior · ")
+                  f"{es(abs(tendencia))}{unidad_tendencia}</span> {frente} · ")
     simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
     col.markdown(f"<div class='kpi{' alerta' if alerta else ''}'><div class='cabeza'>{simbolo}"
                  f"<div class='etiqueta'>{etiqueta}</div></div>"
