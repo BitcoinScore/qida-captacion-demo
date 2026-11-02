@@ -38,14 +38,17 @@ st.markdown(
   border-bottom:1px solid {comun.BORDE}; margin-bottom:1rem}}
 .cab a.tel {{color:{comun.VERDE}; font-weight:700; text-decoration:none}}
 .cab .estado {{font-size:.85rem; padding:2px 10px; border-radius:99px}}
-.hero {{background:{comun.FONDO}; border-radius:24px; padding:2.4rem 2.6rem; margin-bottom:1rem}}
+.st-key-hero {{background:{comun.FONDO}; border-radius:24px; padding:2.4rem 2.6rem; margin-bottom:1rem; gap:0}}
 .hero h1 {{margin:0 0 .5rem; font-size:2.6rem; line-height:1.1}}
 .hero .bajada {{font-size:1.15rem; color:#4d5d5c}}
-.acciones {{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem}}
-.boton {{display:inline-block; border-radius:99px; padding:.5rem 1.1rem; font-weight:700; text-decoration:none !important}}
-.boton.lleno {{background:{comun.VERDE}; color:white !important}}
-.boton.vacio {{border:2px solid {comun.VERDE}; color:{comun.VERDE} !important; background:white}}
-.precio {{display:inline-block; margin-top:.9rem; color:{comun.VERDE}; font-weight:700}}
+.st-key-hero .st-key-acciones {{margin-top:1.6rem !important; gap:.6rem}}
+.st-key-acciones a, .st-key-acciones button {{border-radius:99px !important; padding:.5rem 1.1rem !important; min-height:0 !important}}
+.st-key-acciones a p, .st-key-acciones button p {{font-weight:700 !important; font-size:1rem}}
+.st-key-acciones button {{background:white !important; border:2px solid {comun.VERDE} !important; color:{comun.VERDE} !important}}
+.st-key-acciones .st-key-llamar button {{background:{comun.VERDE} !important; color:white !important}}
+.telefono-grande {{display:block; text-align:center; font-size:2.2rem; font-weight:700; color:{comun.VERDE} !important;
+  text-decoration:none !important; border:2px solid {comun.BORDE}; border-radius:16px; padding:.8rem; margin:.4rem 0 .8rem}}
+.precio {{display:inline-block; margin:.9rem 0 .4rem; color:{comun.VERDE}; font-weight:700}}
 .confianza {{display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; margin:.2rem 0 1.4rem}}
 .confianza div {{flex:1; min-width:150px; border:1px solid {comun.BORDE}; border-radius:14px; padding:.7rem 1rem; color:#4d5d5c}}
 .confianza b {{display:block; font-size:1.5rem; color:{comun.VERDE}}}
@@ -62,7 +65,7 @@ st.markdown(
 .paso > span {{color:#4d5d5c; font-size:.92rem; line-height:1.45}}
 .aviso-noche {{background:#fff4ef; border:1px solid #f4c3b0; color:#7a3418; border-radius:14px; padding:.8rem 1rem;}}
 @media (max-width: 640px) {{
-  .hero {{padding:1.4rem 1.3rem}} .hero h1 {{font-size:2rem}}
+  .st-key-hero {{padding:1.4rem 1.3rem}} .hero h1 {{font-size:2rem}}
   .cab img, .cab .marca-texto {{display:none}}  /* en móvil el logotipo ya está en la barra superior */
   .st-key-boton-chat {{right:14px; bottom:14px}}
   .pasos {{grid-template-columns:1fr 1fr; row-gap:1.2rem}} .paso:nth-child(2) .linea::after {{display:none}}
@@ -125,18 +128,22 @@ st.markdown(
     f"<div>Llámanos: <a class='tel' href='tel:+34{TELEFONO.replace(' ', '')}'>{TELEFONO}</a> · {franja} &nbsp;{estado}</div></div>",
     unsafe_allow_html=True,
 )
-st.markdown(
-    f"""
+with st.container(key="hero"):
+    st.markdown(
+        """
 <div class="hero">
   <h1>Cuidamos a los tuyos en casa</h1>
   <div class="bajada">Cuidadoras profesionales desde 2 horas a la semana, sin permanencia y con una Referente Social
   que te acompaña de principio a fin.</div>
   <div class="precio">Desde 170 €/mes · presupuesto gratis</div>
-  <div class="acciones">
-    <a class="boton lleno" href="tel:+34{TELEFONO.replace(' ', '')}">Llamar ahora</a>
-    <a class="boton vacio" href="#formulario">Prefiero que me llaméis</a>
-  </div>
-</div>
+</div>""",
+        unsafe_allow_html=True,
+    )
+    with st.container(horizontal=True, key="acciones"):
+        pide_telefono = st.button("Llamar ahora", key="llamar", icon=":material/call:")
+        pide_llamada = st.button("Prefiero que me llaméis", key="abrir-formulario")
+st.markdown(
+    f"""
 <div class="confianza">
   <div><b>4,8/5</b>calidad del servicio</div>
   <div><b>+25.000</b>familias atendidas</div>
@@ -146,6 +153,60 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
+def formulario(clave: str, con_titulo: bool = True) -> None:
+    """Formulario de «te llamamos». `clave` distingue el de la página del de la ventana (no pueden repetir claves)."""
+    with st.form(f"formulario-{clave}", border=con_titulo):  # en la ventana, sin doble marco
+        if con_titulo:
+            st.markdown("#### Déjanos tus datos y te llamamos")
+        servicio = st.selectbox("¿Qué necesitas?", SERVICIOS, key=f"servicio-{clave}")
+        telefono = st.text_input("Teléfono", placeholder="600 000 000", key=f"telefono-{clave}")
+        cp = st.text_input("Código postal", placeholder="28001", key=f"cp-{clave}")
+        acepto = st.checkbox(CASILLA, key=f"acepto-{clave}")
+        st.caption(PRIVACIDAD)
+        enviado = st.form_submit_button("Quiero que me llaméis", type="primary", width="stretch")
+    if enviado and not st.session_state.get("formulario_enviado"):
+        tel = normalizar_telefono(telefono)
+        errores = []
+        if not tel:
+            errores.append("Escribe un teléfono de 9 cifras (puedes poner +34 delante).")
+        if not re.fullmatch(r"\d{5}", cp.strip()):
+            errores.append("Escribe un código postal de 5 cifras.")
+        if not acepto:
+            errores.append("Marca la casilla para que podamos llamarte.")
+        if errores:
+            comun.nota("<br>".join(errores), "alerta")
+        else:
+            guardar_lead("Formulario", {"servicio": servicio, "telefono": tel, "cp": cp.strip()})
+            st.session_state["formulario_enviado"] = tel
+    if st.session_state.get("formulario_enviado"):
+        tel = st.session_state["formulario_enviado"]
+        comun.nota(f"**¡Recibido!** Tu asesor/a familiar te llamará al {tel[:3]} {tel[3:6]} {tel[6:]} {cuando_llamamos}.")
+
+
+@st.dialog("Déjanos tus datos y te llamamos")
+def formulario_ventana() -> None:
+    formulario("ventana", con_titulo=False)
+
+
+@st.dialog("Llámanos")
+def llamar_ventana() -> None:
+    enlace = f"tel:+34{TELEFONO.replace(' ', '')}"
+    if abierto:
+        comun.nota(f"**Abierto ahora** · {franja}. Te atiende tu asesor/a familiar.")
+        st.markdown(f"<a class='telefono-grande' href='{enlace}'>{TELEFONO}</a>", unsafe_allow_html=True)
+        st.caption("En el móvil, pulsa el número para llamar. La valoración de tu caso es gratuita.")
+    else:
+        comun.nota(f"**Ahora estamos cerrados.** Son las {ahora:%H:%M} y atendemos de {franja}. Déjanos tu teléfono y "
+                   f"te llamamos {cuando_llamamos}.", "neutra")
+        formulario("telefono", con_titulo=False)
+        st.caption(f"O llámanos en horario de atención al {TELEFONO}. Si es una urgencia médica, llama al 112.")
+
+
+if pide_llamada:
+    formulario_ventana()
+if pide_telefono:
+    llamar_ventana()
 
 izq, der = st.columns([3, 2], gap="large")
 with izq:
@@ -167,32 +228,7 @@ with izq:
         for n, (titulo, texto) in enumerate(PASOS, 1)) + "</div>", unsafe_allow_html=True)
 
 with der:
-    st.markdown("<div id='formulario'></div>", unsafe_allow_html=True)
-    with st.form("formulario", border=True):
-        st.markdown("#### Déjanos tus datos y te llamamos")
-        servicio = st.selectbox("¿Qué necesitas?", SERVICIOS)
-        telefono = st.text_input("Teléfono", placeholder="600 000 000")
-        cp = st.text_input("Código postal", placeholder="28001")
-        acepto = st.checkbox(CASILLA)
-        st.caption(PRIVACIDAD)
-        enviado = st.form_submit_button("Quiero que me llaméis", type="primary", width="stretch")
-    if enviado and not st.session_state.get("formulario_enviado"):
-        tel = normalizar_telefono(telefono)
-        errores = []
-        if not tel:
-            errores.append("Escribe un teléfono de 9 cifras (puedes poner +34 delante).")
-        if not re.fullmatch(r"\d{5}", cp.strip()):
-            errores.append("Escribe un código postal de 5 cifras.")
-        if not acepto:
-            errores.append("Marca la casilla para que podamos llamarte.")
-        if errores:
-            comun.nota("<br>".join(errores), "alerta")
-        else:
-            guardar_lead("Formulario", {"servicio": servicio, "telefono": tel, "cp": cp.strip()})
-            st.session_state["formulario_enviado"] = tel
-    if st.session_state.get("formulario_enviado"):
-        tel = st.session_state["formulario_enviado"]
-        comun.nota(f"**¡Recibido!** Tu asesor/a familiar te llamará al {tel[:3]} {tel[3:6]} {tel[6:]} {cuando_llamamos}.")
+    formulario("pagina")
     if not abierto:
         st.markdown(f"<div class='aviso-noche'>Son las {ahora:%H:%M} y ahora no podemos atenderte por teléfono. Déjanos tus "
                     f"datos o habla con el asistente virtual: te llamamos {cuando_llamamos}.</div>", unsafe_allow_html=True)

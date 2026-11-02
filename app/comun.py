@@ -36,6 +36,7 @@ h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: 
   letter-spacing: -.01em;}}
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
 /* Aire antes de cada subtítulo, en todas las pantallas (salvo si abre la columna o la página) */
+.block-container {{padding-top: 2.2rem !important;}}
 [data-testid="stMarkdownContainer"] h4 {{margin-top: 1.8rem !important; padding-top: 0 !important;}}
 [data-testid="stMarkdownContainer"] h3 {{margin-top: 2rem !important;}}
 [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child [data-testid="stMarkdownContainer"] h4,
