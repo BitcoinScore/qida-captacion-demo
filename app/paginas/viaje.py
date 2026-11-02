@@ -158,7 +158,16 @@ st.caption("Objetivos de ejemplo. Color de la cifra: verde = cumple su objetivo;
            + "La permanencia es histórica (hacen falta meses para medirla).")
 
 # ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
-st.markdown("#### Dónde se pierden las familias")
+st.markdown(f"#### Dónde se pierden las familias · {e_desde.day} {comun.MESES[e_desde.month - 1][:3]} – "
+            f"{e_hasta.day} {comun.MESES[e_hasta.month - 1][:3]} {e_hasta.year}")
+fuera = act["familias"] - familias  # familias del periodo que aún no han tenido 30 días para contratar
+if not embudo_propio:
+    comun.nota(f"Las {es(act['familias'], 0)} familias del periodo elegido aún no han tenido 30 días para contratar, así que "
+               f"el embudo enseña el tramo anterior completo: {es(familias, 0)} familias.", "neutra")
+elif fuera > 0:
+    comun.nota(f"De las {es(act['familias'], 0)} familias que piden ayuda en el periodo, el embudo sigue a las {es(familias, 0)} "
+               f"que ya han tenido 30 días para contratar. Las {es(fuera, 0)} que entraron después del {e_hasta.day} "
+               f"{comun.MESES[e_hasta.month - 1][:3]} aún están en camino.", "neutra")
 ETAPAS = [
     {"nombre": "Piden ayuda", "valor": familias,
      "perdida": f"{es(familias - contactadas, 0)} nunca llegan a hablar con nadie",
@@ -178,12 +187,8 @@ ETAPAS = [
     {"nombre": "Siguen al año", "valor": round(contratos * r12), "estimado": True},
 ]
 comun.grafico(graficos.embudo_viaje(ETAPAS))
-tramo = f"del {corta(e_desde)} al {corta(e_hasta)}"
-st.caption((f"Familias que pidieron ayuda {tramo}" if embudo_propio else
-            f"El periodo elegido aún no tiene familias con 30 días para contratar: se muestra el tramo anterior, {tramo}")
-           + ("" if not embudo_propio or e_hasta == p_hasta else " (las posteriores aún pueden contratar)")
-           + "; cada paso cuenta si ocurre en los 30 días siguientes. Las dos últimas etapas (trazo discontinuo) son "
-           "estimaciones con la curva de permanencia.")
+st.caption("Cada paso cuenta si ocurre en los 30 días siguientes a pedir ayuda. Las dos últimas etapas (trazo discontinuo) "
+           "son estimaciones con la curva de permanencia.")
 
 # ── 3. El viaje, etapa a etapa (service blueprint) ────────────────────────────────────────────────────────────
 st.markdown("#### El viaje, etapa a etapa")
