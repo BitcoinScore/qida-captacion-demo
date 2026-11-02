@@ -137,4 +137,5 @@ def test_el_chat_no_exige_casilla_para_escribir(con, monkeypatch):
     assert not any("acepto" in (c.key or "") for c in at.checkbox if (c.key or "").endswith("chat"))
     assert at.chat_input and not at.chat_input[0].disabled
     assert any("Prefiero que me llame" in b.label for b in at.button)
-    assert any("aceptas que Qida use lo que cuentes" in c.value for c in at.caption)
+    assert any("aceptas que Qida use lo que cuentes" in m.value for m in at.markdown)
+    assert any('href="tel:112"' in m.value for m in at.markdown), "el 112 debe poder pulsarse dentro del chat"

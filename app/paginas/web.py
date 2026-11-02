@@ -9,6 +9,7 @@ Marca, servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026).
 qida.es, propiedad de Qida, y se usan solo en esta demo privada.
 """
 import base64
+import html
 import json
 import re
 import time as reloj
@@ -16,6 +17,7 @@ from datetime import datetime, time
 
 import streamlit as st
 
+import chat_ui
 import comun
 from motor import asistente, conversacion, leads, limites, llm
 from motor.contacto import horario, limpiar_ficha, normalizar_telefono
@@ -212,11 +214,6 @@ header[data-testid="stHeader"] {{display: none;}}
 .pie-web .urg {{color: #ffd9c9;}}
 .legal-web {{border-top: 1px solid rgba(255,255,255,.15); padding: 1rem 0 1.6rem; font-size: .82rem; color: #9fc2bf;}}
 @media (max-width: 760px) {{.pie-web {{grid-template-columns: 1fr;}}}}
-/* Chat flotante y ventanas */
-.st-key-boton-chat {{position: fixed; right: 28px; bottom: 28px; z-index: 999; width: auto !important;}}
-.st-key-boton-chat button {{border-radius: 2rem !important; padding: .75rem 1.3rem; background: {VERDE} !important;
-  color: white !important; border: 2px solid white !important; box-shadow: 0 8px 24px rgba(0,0,0,.35); font-weight: 600;}}
-@media (max-width: 640px) {{.st-key-boton-chat {{right: 14px; bottom: 14px;}}}}
 </style>
 """,
     unsafe_allow_html=True,
@@ -287,22 +284,24 @@ def formulario_ventana() -> None:
 
 
 # ── Asistente virtual ────────────────────────────────────────────────────────────────────────────────────────────────────
-def vista_equipo(ficha: dict, cuando: str) -> None:
+def vista_equipo(ficha: dict, cuando: str, opciones: bool = False) -> None:
+    """Tarjeta «Vista del equipo» junto al chat (solo en la demo). Muestra lo que llegaría al CRM y, con `opciones`, deja atender una
+    petición de borrado o empezar de cero."""
     ficha = limpiar_ficha(ficha)  # defensa en profundidad: nunca se pinta HTML que venga del modelo
-    with st.expander("Vista del equipo · solo en la demo, la familia no la ve", icon=":material/badge:"):
-        if ficha.get("escalar"):
-            comun.nota(f"**Pasa a una persona:** {ficha.get('motivo_escalado') or ''}", "alerta")
-        if ficha.get("llamada_agendada"):
-            comun.nota(f"**Llamada agendada:** {cuando}.")
-        campos = [
-            ("Ciudad", ficha.get("ciudad")), ("Servicio", ficha.get("servicio")),
-            ("Teléfono", ficha.get("telefono")), ("Nombre", ficha.get("nombre")),
-            ("Urgente", "Sí" if ficha.get("urgencia") else "No"),
-            ("Dependencia", "La menciona" if ficha.get("menciona_dependencia") else "No"),
-        ]
-        for col, (k, v) in zip(st.columns(3) * 2, campos):
-            comun.kpi(col, k, v or "pendiente")
-        st.caption("Entra en el CRM como una familia más (canal «Asistente de noche») y aparece en la cola de llamadas.")
+    with st.container(key="equipo-demo"):
+        st.markdown(chat_ui.equipo_html(ficha, cuando), unsafe_allow_html=True)
+        if opciones:
+            if st.session_state.get("lead_ids") and st.button("Atender la petición de borrado", icon=":material/delete:",
+                                                              width="stretch"):
+                with comun.conexion() as con:
+                    borrados = sum(leads.borrar(con, i) for i in st.session_state.pop("lead_ids"))
+                for k in ("historial", "ficha", "guardado", "pendientes"):
+                    st.session_state.pop(k, None)
+                comun.nota(f"Borrados {borrados} registros de esta conversación (ficha, conversación y consentimiento).", "neutra")
+            if st.button("Empezar una conversación nueva", icon=":material/restart_alt:", width="stretch"):
+                for k in ("historial", "ficha", "guardado", "lead_ids", "pendientes"):
+                    st.session_state.pop(k, None)
+                st.rerun()
 
 
 def conversaciones_grabadas() -> list[dict]:
@@ -317,8 +316,9 @@ def conversaciones_grabadas() -> list[dict]:
 
 
 def chat_grabado() -> None:
-    comun.nota("**Modo grabado:** este ordenador no tiene el modelo conectado, así que el asistente reproduce conversaciones "
-               "**reales** de la evaluación (versión 3). Cada una conserva la hora a la que se hizo.", "neutra")
+    st.markdown("<div class='qaviso'><b>Modo grabado:</b> este ordenador no tiene el modelo conectado, así que el asistente "
+                "reproduce conversaciones <b>reales</b> de la evaluación (versión 3), cada una con la hora a la que se hizo.</div>",
+                unsafe_allow_html=True)
     grabadas = conversaciones_grabadas()
     if not grabadas:
         comun.nota("No hay conversaciones grabadas. Ejecuta la evaluación (`python eval/ejecutar.py`).", "alerta")
@@ -327,15 +327,11 @@ def chat_grabado() -> None:
              if (comun.RAIZ / "eval" / f).exists()
              for c in json.loads((comun.RAIZ / "eval" / f).read_text(encoding="utf-8"))}
     etiquetas = {f"{r['categoria'].replace('_', ' ').capitalize()} · «{r['historial'][0]['texto'][:60]}»": r for r in grabadas}
-    elegida = etiquetas[st.selectbox("Elige una conversación", list(etiquetas))]
+    elegida = etiquetas[st.selectbox("Elige una conversación", list(etiquetas), label_visibility="collapsed")]
     momento = datetime.fromisoformat(casos[elegida["id"]]["hora"]) if elegida["id"] in casos else ahora
     _, _, cuando = horario(momento)
-    st.caption(f"Conversación grabada a las {momento:%H:%M} de un día {['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'][momento.weekday()]}.")
-    with st.container(height=320):
-        st.chat_message("assistant").write("Hola, soy el **asistente virtual de Qida**: una IA, no una persona. "
-                                           "Cuéntame qué ayuda buscas.")
-        for m in elegida["historial"]:
-            st.chat_message("user" if m["rol"] == "usuario" else "assistant").write(m["texto"])
+    st.markdown(chat_ui.resumen(limpiar_ficha(elegida["ficha"])), unsafe_allow_html=True)
+    st.markdown(chat_ui.burbujas(elegida["historial"], momento, cuando), unsafe_allow_html=True)
     vista_equipo(elegida["ficha"], cuando)
 
 
@@ -345,38 +341,41 @@ def encolar(texto: str) -> None:
         st.session_state.setdefault("pendientes", []).append(texto)
 
 
-@st.dialog("Asistente virtual de Qida", width="large")
+def revelar(zona, historial: list[dict], texto: str, cuando: str) -> None:
+    """El mensaje del asistente aparece de a poco, como si lo escribiera: más natural que de golpe y apenas añade medio segundo."""
+    palabras = texto.split(" ")
+    for k in range(5, len(palabras), 5):
+        parcial = historial[:-1] + [{"rol": "asistente", "texto": " ".join(palabras[:k])}]
+        zona.markdown(chat_ui.burbujas(parcial, ahora, cuando), unsafe_allow_html=True)
+        reloj.sleep(0.03)
+    zona.markdown(chat_ui.burbujas(historial, ahora, cuando), unsafe_allow_html=True)
+
+
+@st.dialog("Asistente virtual de Qida", width="small")
 def chat():
     historial = st.session_state.setdefault("historial", [])
     ficha = st.session_state.setdefault("ficha", {})
-    comun.nota("**¿Es una urgencia médica?** Llama ahora al **112**.", "alerta")
+    pendientes = st.session_state.setdefault("pendientes", [])
+    st.markdown(chat_ui.CSS + chat_ui.cabecera(abierto, cuando_llamamos, ENLACE_TEL), unsafe_allow_html=True)
     if llm.modo() == "grabado":
         chat_grabado()
         return
-    # Sin casilla que bloquee: en una urgencia o de madrugada, nadie debe tener que «aceptar» para pedir ayuda. Se informa
-    # antes de escribir y el consentimiento es el acto de dejar el teléfono (queda registrado con este texto en cada lead).
-    st.caption(AVISO_CHAT)
 
-    caja = st.container(height=320)
-    with caja:
-        st.chat_message("assistant").write(
-            "Hola, soy el **asistente virtual de Qida**: una IA, no una persona. Cuéntame qué ayuda buscas y dejo "
-            f"preparado que tu asesor/a familiar te llame {cuando_llamamos}.")
-        for m in historial:
-            st.chat_message("user" if m["rol"] == "usuario" else "assistant").write(m["texto"])
+    slot_resumen = st.empty()
+    slot_resumen.markdown(chat_ui.resumen(ficha), unsafe_allow_html=True)
+    zona = st.empty()
+    zona.markdown(chat_ui.burbujas(historial, ahora, cuando_llamamos), unsafe_allow_html=True)
 
-    # Cada clic o mensaje se apunta en una cola al instante (callback) y se contesta por orden. Un mensaje solo sale de la cola
-    # cuando su turno ya está guardado: si Streamlit cancela la ejecución porque la persona pulsa otro botón mientras el modelo
-    # piensa, nada se pierde y los dos mensajes acaban contestados.
-    pendientes = st.session_state.setdefault("pendientes", [])
-    if not historial and not pendientes:
-        r1, r2, r3 = st.columns(3)
-        for col, texto in ((r1, "Necesito ayuda urgente en casa"), (r2, "Quiero saber precios"),
-                           (r3, "Tengo dudas con la Dependencia")):
-            col.button(texto, width="stretch", on_click=encolar, args=(texto,))
-    st.button("Prefiero que me llame una persona", icon=":material/support_agent:", width="stretch", on_click=encolar,
-              args=("Prefiero que me llame una persona",))
-    st.chat_input("Escribe aquí…", max_chars=limites.MAX_CARACTERES, key="chat_entrada",
+    # Respuestas rápidas. Los dos grupos existen siempre (claves estables) y el CSS enseña uno u otro según haya ya un mensaje de
+    # la familia en la conversación. Cada clic se apunta en una cola (callback) y se contesta por orden: si Streamlit cancela la
+    # ejecución porque la persona pulsa otro botón mientras el modelo piensa, no se pierde nada.
+    with st.container(key="qchips-inicio", horizontal=True):
+        for i, texto in enumerate(("Necesito ayuda urgente en casa", "Quiero saber precios", "Tengo dudas con la Dependencia")):
+            st.button(texto, key=f"qi-{i}", on_click=encolar, args=(texto,))
+    with st.container(key="qchips-sigue", horizontal=True):
+        st.button("Quiero dejar mi teléfono", key="qs-0", on_click=encolar, args=("Quiero dejar mi teléfono",))
+        st.button("Prefiero que me llame una persona", key="qs-1", on_click=encolar, args=("Prefiero que me llame una persona",))
+    st.chat_input("Escribe tu mensaje…", max_chars=limites.MAX_CARACTERES, key="chat_entrada",
                   on_submit=lambda: encolar(st.session_state.get("chat_entrada", "")))
 
     while pendientes:
@@ -387,32 +386,25 @@ def chat():
             comun.nota(motivo, "neutra")
             pendientes.pop(0)
             continue
-        with caja:
-            st.chat_message("user").write(pregunta)
-            with st.chat_message("assistant"), st.spinner("Escribiendo… (unos segundos)"):
-                texto, nueva = conversacion.turno(historial, pregunta, asistente.responder, ahora, TELEFONO)
-                st.write(texto)
+        zona.markdown(chat_ui.burbujas(historial, ahora, cuando_llamamos, escribiendo=True, pendiente=pregunta),
+                      unsafe_allow_html=True)
+        # El turno se guarda entero y solo al tener respuesta (ver motor/conversacion.py)
+        texto, nueva = conversacion.turno(historial, pregunta, asistente.responder, ahora, TELEFONO)
+        revelar(zona, historial, texto, cuando_llamamos)
         pendientes.pop(0)  # solo después de guardar el turno
         # La ficha la escribe el modelo a partir de lo que dice la familia: se valida antes de guardarla o pintarla
         st.session_state["ficha"] = ficha = limpiar_ficha(nueva) if nueva else ficha
+        slot_resumen.markdown(chat_ui.resumen(ficha), unsafe_allow_html=True)
         # Se guarda con teléfono, o sin él si hay que pasarlo a una persona (si no, «te dejo anotada la petición» sería falso)
         marca = ficha.get("telefono") or ("escalar" if ficha.get("escalar") else None)
         if marca and st.session_state.get("guardado") != marca:
             st.session_state.setdefault("lead_ids", []).append(guardar_lead("Chat", ficha, historial))
             st.session_state["guardado"] = marca
 
-    vista_equipo(ficha, cuando_llamamos)
-    if st.session_state.get("lead_ids"):  # lo que haría el equipo ante «borrad mis datos» (derecho de supresión)
-        if st.button("Vista del equipo: atender la petición de borrado", icon=":material/delete:"):
-            with comun.conexion() as con:
-                borrados = sum(leads.borrar(con, i) for i in st.session_state.pop("lead_ids"))
-            for k in ("historial", "ficha", "guardado", "pendientes"):
-                st.session_state.pop(k, None)
-            comun.nota(f"Borrados {borrados} registros de esta conversación (ficha, conversación y consentimiento).", "neutra")
-    if st.button("Empezar de nuevo"):
-        for k in ("historial", "ficha", "guardado", "lead_ids", "pendientes"):
-            st.session_state.pop(k, None)
-        st.rerun()
+    # Sin casilla que bloquee: en una urgencia o de madrugada, nadie debe tener que «aceptar» para pedir ayuda. Se informa antes de
+    # escribir y el consentimiento es el acto de dejar el teléfono (queda registrado con este texto en cada lead).
+    st.markdown(f"<div class='qpie'>{html.escape(AVISO_CHAT)}</div>", unsafe_allow_html=True)
+    vista_equipo(ficha, cuando_llamamos, opciones=True)
 
 
 # ── Cabecera ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -539,7 +531,7 @@ with st.container(key="banda-pie"):
 <div class="pie-web">
   <div><span class="marca-texto">Qida</span><p>Cuidado de personas mayores a domicilio, con seguimiento profesional real.</p></div>
   <div><h3>Contacto</h3><a href="{ENLACE_TEL}">{TELEFONO}</a><br>{franja}</div>
-  <div><h3>Si es una urgencia</h3><span class="urg">Llama al <b>112</b>. Este asistente y este formulario no atienden urgencias.</span></div>
+  <div><h3>Si es una urgencia</h3><span class="urg">Llama al <a href="tel:112"><b>112</b></a>. Este asistente y este formulario no atienden urgencias.</span></div>
 </div>
 <div class="legal-web">Concepto de Máximo Fernández Catalán para su candidatura de AI Product Builder en Qida. No es la web oficial: marca,
 servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026). El asistente es una IA, no una persona.</div>""",
@@ -547,6 +539,9 @@ servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026). El asi
 
 
 
+# ── Lanzador: avatar abajo a la derecha que saluda solo con un bocadillo ─────────────────────────────────────────────
+st.markdown(chat_ui.LANZADOR_CSS, unsafe_allow_html=True)
 with st.container(key="boton-chat"):
-    if st.button("¿Hablamos? Asistente virtual", icon=":material/chat:"):
+    st.markdown(chat_ui.lanzador(chat_ui.saludo(abierto, cuando_llamamos, ahora)), unsafe_allow_html=True)
+    if st.button("¿Hablamos? Asistente virtual", key="abrir-chat"):
         chat()
