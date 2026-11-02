@@ -45,7 +45,7 @@ def test_kpis_mes(con):
 
 
 def test_kpis_periodo_madurez(con):
-    reciente = metricas.kpis_periodo(con, "2026-10-02", "2026-10-31")
+    reciente = metricas.kpis_periodo(con, "2026-10-04", "2026-11-02")
     cerrado = metricas.kpis_periodo(con, "2026-08-01", "2026-08-30")
     assert reciente["familias"] > 0 and reciente["dias"] == 30
     assert not reciente["madura"] and cerrado["madura"]

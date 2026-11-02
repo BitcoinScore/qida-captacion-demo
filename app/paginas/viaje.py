@@ -8,20 +8,34 @@ import graficos
 from comun import es
 from motor import metricas
 
-ULTIMO_DATO = date(2026, 10, 31)  # «hoy» en la demo: último día con datos
+ULTIMO_DATO = date(2026, 11, 2)  # «hoy» en la demo: último día con datos
 def meses_atras(d: date, n: int) -> date:
     """Primer día del mes que está n meses antes del mes de `d`."""
     total = d.year * 12 + d.month - 1 - n
     return date(total // 12, total % 12 + 1, 1)
 
 
-OPCIONES = {"Último mes": 1, "Últimos 3 meses": 3, "Últimos 6 meses": 6, "Último año": 12, "Personalizado": None}
-eleccion = st.sidebar.selectbox("Periodo de los indicadores", list(OPCIONES), index=0,
-                                help="Se compara con el periodo anterior equivalente (el mes, los 3 o 6 meses o el año antes).")
-n_meses_periodo = OPCIONES[eleccion]
-if n_meses_periodo:
-    p_hasta = ULTIMO_DATO
-    p_desde = meses_atras(ULTIMO_DATO, n_meses_periodo - 1)
+# Días sueltos y semana: hasta hoy. Meses: meses naturales completos (el último, octubre); «Este mes», del 1 a hoy.
+OPCIONES = {"Hoy": "hoy", "Ayer": "ayer", "Última semana": "semana", "Este mes": "mes_en_curso", "Último mes": 1,
+            "Últimos 3 meses": 3, "Últimos 6 meses": 6, "Último año": 12, "Personalizado": None}
+eleccion = st.sidebar.selectbox("Periodo de los indicadores", list(OPCIONES), index=list(OPCIONES).index("Último mes"),
+                                help="Se compara con el periodo anterior equivalente: el día, la semana, los mismos días del "
+                                     "mes anterior, o los meses anteriores.")
+opcion = OPCIONES[eleccion]
+n_meses_periodo = opcion if isinstance(opcion, int) else None
+ultimo_mes_cerrado = ULTIMO_DATO.replace(day=1) - timedelta(days=1)
+if opcion in ("hoy", "ayer", "semana"):
+    p_hasta = ULTIMO_DATO - timedelta(days=1 if opcion == "ayer" else 0)
+    p_desde = p_hasta - timedelta(days=6 if opcion == "semana" else 0)
+    a_hasta = p_desde - timedelta(days=1)
+    a_desde = a_hasta - (p_hasta - p_desde)
+elif opcion == "mes_en_curso":
+    p_desde, p_hasta = ULTIMO_DATO.replace(day=1), ULTIMO_DATO
+    a_desde = meses_atras(p_desde, 1)
+    a_hasta = a_desde + (p_hasta - p_desde)
+elif n_meses_periodo:
+    p_hasta = ultimo_mes_cerrado
+    p_desde = meses_atras(p_hasta, n_meses_periodo - 1)
     a_hasta = p_desde - timedelta(days=1)
     a_desde = meses_atras(p_desde, n_meses_periodo)
 else:
@@ -39,15 +53,16 @@ PRIMER_DATO = date(2025, 5, 1)
 comparable = a_desde >= PRIMER_DATO  # si el periodo anterior cae antes de los datos, compararlo engañaría
 
 # Conversión y coste solo con familias que ya han tenido 30 días para contratar (la parte madura del periodo)
-LIMITE_MADURO = ULTIMO_DATO - timedelta(days=31)  # 30 sep: igual que la vista `cohorte`
+LIMITE_MADURO = date(2026, 9, 30)  # igual que la vista `cohorte`: meses completos con 30 días de margen
 maduro_hasta = min(p_hasta, LIMITE_MADURO)
 hay_maduro = (maduro_hasta - p_desde).days + 1 >= min(7, duracion)  # al menos una semana madura
 # El embudo usa la parte madura del periodo; si no la hay (p. ej. octubre), el último tramo maduro de la misma duración
 if hay_maduro:
     e_desde, e_hasta, embudo_propio = p_desde, maduro_hasta, True
 else:
-    e_desde, e_hasta, embudo_propio = (meses_atras(p_desde, n_meses_periodo) if n_meses_periodo else
-                                       LIMITE_MADURO - timedelta(days=duracion - 1)), LIMITE_MADURO, False
+    # Periodos cortos: el último mes completo maduro (septiembre); largos, el último tramo maduro de la misma duración
+    e_desde = LIMITE_MADURO.replace(day=1) if duracion <= 31 else LIMITE_MADURO - timedelta(days=duracion - 1)
+    e_hasta, embudo_propio = LIMITE_MADURO, False
 
 
 def embudo(con, desde: date, hasta: date):
@@ -87,20 +102,26 @@ tasa_dia, tasa_noche = val_dia / n_dia, val_noche / n_noche  # llegan a valoraci
 comun.cabecera("Viaje de la familia", "La mayor fuga está entre la primera llamada y la valoración",
                "dirección y marketing",
                f"De cada 100 familias con las que habla un asesor/a familiar, solo {es(100 * valoraciones / contactadas, 0)} "
-               "llegan a la valoración. Y casi 4 de cada 10 piden ayuda cuando no hay nadie al teléfono.")
+               f"llegan a la valoración. Y el {es(pct_noche, 0)} % pide ayuda cuando no hay nadie al teléfono.")
 
 # ── 1. Lo primero que se mira: seis indicadores del periodo elegido ───────────────────────────────────────────────
 def corta(d: date) -> str:
     return f"{d.day} {comun.MESES[d.month - 1][:3]} {d.year}"
 
 
-if mes_completo:
+DIA_SEMANA = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+if opcion in ("hoy", "ayer"):
+    titulo = f"{eleccion.lower()}, {DIA_SEMANA[p_desde.weekday()]} {corta(p_desde)} · frente al día anterior"
+elif opcion == "semana":
+    titulo = f"última semana: {corta(p_desde)} – {corta(p_hasta)} · frente a los 7 días anteriores"
+elif opcion == "mes_en_curso":
+    titulo = (f"{comun.MESES[p_desde.month - 1]} hasta hoy: {corta(p_desde)} – {corta(p_hasta)} · frente a los mismos días "
+              f"de {comun.MESES[a_desde.month - 1]}")
+elif mes_completo:
     titulo = f"{comun.MESES[p_desde.month - 1]} de {p_desde.year} · frente a {comun.MESES[a_desde.month - 1]}"
 elif n_meses_periodo:
     titulo = (f"{eleccion.lower()}: {corta(p_desde)} – {corta(p_hasta)} · frente a los {n_meses_periodo} meses anteriores"
               if n_meses_periodo < 12 else f"último año: {corta(p_desde)} – {corta(p_hasta)} · frente al año anterior")
-else:
-    titulo = f"{corta(p_desde)} – {corta(p_hasta)} · {duracion} días · frente a los {duracion} días anteriores"
 if not comparable:  # los datos empiezan en mayo de 2025: no hay periodo anterior completo
     titulo = titulo.split(" · frente")[0] + " · sin periodo anterior completo para comparar (los datos empiezan en mayo de 2025)"
 st.markdown(f"<div class='seccion'>{titulo}</div>", unsafe_allow_html=True)
@@ -122,7 +143,9 @@ def estado(valor, objetivo, mejor_si_sube=True):
     return ("bien", "cumple el objetivo") if cumple else ("mal", "por debajo del objetivo" if mejor_si_sube else "por encima del objetivo")
 
 
-frente = {1: "frente al mes anterior", 12: "frente al año anterior"}.get(n_meses_periodo, "frente al periodo anterior")
+frente = {"hoy": "frente a ayer", "ayer": "frente al día anterior", "semana": "frente a la semana anterior",
+          "mes_en_curso": "frente a los mismos días del mes anterior", 1: "frente al mes anterior",
+          12: "frente al año anterior"}.get(opcion, "frente al periodo anterior")
 fila = comun.Fila()
 k = [fila] * 6
 comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
@@ -140,7 +163,7 @@ nota_maduro = (f"familias hasta el {maduro_hasta.day} {comun.MESES[maduro_hasta.
 if provisional:
     comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %", "aún pueden contratar: no se compara", estado="provisional",
               texto_estado="provisional", icono="handshake")
-    comun.kpi(k[4], "Coste por familia", es(act["cac"], 0, " €"), "faltan contratos por llegar: no se compara",
+    comun.kpi(k[4], "Coste por familia", "—", "faltan contratos por llegar: se mide a los 30 días",
               estado="provisional", texto_estado="provisional", icono="euro")
 else:
     e = estado(act_m["conversion"], OBJ_CONVERSION)
@@ -163,7 +186,7 @@ st.markdown(f"#### Dónde se pierden las familias · {e_desde.day} {comun.MESES[
 fuera = act["familias"] - familias  # familias del periodo que aún no han tenido 30 días para contratar
 if not embudo_propio:
     comun.nota(f"Las {es(act['familias'], 0)} familias del periodo elegido aún no han tenido 30 días para contratar, así que "
-               f"el embudo enseña el tramo anterior completo: {es(familias, 0)} familias.", "neutra")
+               f"el embudo enseña el último tramo que ya los ha tenido ({es(familias, 0)} familias).", "neutra")
 elif fuera > 0:
     comun.nota(f"De las {es(act['familias'], 0)} familias que piden ayuda en el periodo, el embudo sigue a las {es(familias, 0)} "
                f"que ya han tenido 30 días para contratar. Las {es(fuera, 0)} que entraron después del {e_hasta.day} "

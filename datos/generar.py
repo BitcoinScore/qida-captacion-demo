@@ -12,7 +12,7 @@ from pathlib import Path
 SEMILLA = 42
 N_LEADS = 15000
 INICIO = datetime(2025, 5, 1)  # 18 meses: hace falta historia para medir quién sigue al año
-FIN = datetime(2026, 10, 31)
+FIN = datetime(2026, 11, 2, 23, 59)  # «hoy» en la demo
 DB = Path(__file__).parent / "crm.db"
 
 # Canal: (peso en el volumen, prob. base de alta, efecto en retención a 3 meses, coste por lead €)
@@ -82,7 +82,7 @@ def generar(db: Path = DB):
     con = sqlite3.connect(db)
     con.executescript((Path(__file__).parent / "esquema.sql").read_text(encoding="utf-8"))
 
-    dias = (FIN - INICIO).days + 1
+    dias = (FIN.date() - INICIO.date()).days + 1
     lead_id = 0
     for familia_id in range(1, N_LEADS + 1):
         dia = INICIO + timedelta(days=rng.randrange(dias))
@@ -118,6 +118,8 @@ def generar(db: Path = DB):
             continue  # nunca se le consiguió hablar
         espera = minutos_hasta_llamada(rng, entrada)
         llamada = entrada + timedelta(minutes=espera)
+        if llamada > FIN:
+            continue  # aún no se le ha llamado
         con.execute("INSERT INTO llamadas VALUES (?,?)", (lead_id, llamada.isoformat(timespec="minutes")))
 
         # Probabilidad real de alta (oculta al modelo)
@@ -130,6 +132,8 @@ def generar(db: Path = DB):
         if rng.random() > p_valoracion:
             continue
         valoracion = llamada + timedelta(days=rng.uniform(1, 6))
+        if valoracion > FIN:
+            continue
         con.execute("INSERT INTO valoraciones VALUES (?,?)", (lead_id, valoracion.isoformat(timespec="minutes")))
 
         if rng.random() > min(0.95, p / p_valoracion):

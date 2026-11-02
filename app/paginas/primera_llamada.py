@@ -48,8 +48,13 @@ fila.pintar()
 NOMBRES = ["Lucía", "Javier", "Carmen", "Antonio", "Marta", "Pablo", "Elena", "Jorge", "Rosa", "Miguel", "Ana", "David",
            "Pilar", "Sergio", "Laura", "Andrés", "Isabel", "Raúl", "Nuria", "Tomás", "Silvia", "Óscar", "Teresa"]
 INICIALES = "ABCDFGHLMNPRSTV"
-HOY = pd.Timestamp("2026-09-30 09:00")
-cola = test[(test["fecha_entrada"] >= HOY - pd.Timedelta(hours=13)) & (test["fecha_entrada"] < HOY)].copy()
+HOY = pd.Timestamp("2026-11-02 09:00")  # «hoy» en la demo
+with comun.conexion() as con:
+    cola = pd.read_sql("SELECT * FROM familias WHERE fecha_entrada >= ? AND fecha_entrada < ?", con,
+                       params=[(HOY - pd.Timedelta(hours=13)).isoformat(), HOY.isoformat()])
+cola["fecha_entrada"] = pd.to_datetime(cola["fecha_entrada"])
+cola = cola[cola["ciudad"].isin(ciudades)].copy()
+cola["score"] = scoring.puntuar(res, cola) if len(cola) else []
 cola["familia"] = [f"{NOMBRES[i % len(NOMBRES)]} {INICIALES[(i // len(NOMBRES)) % len(INICIALES)]}." for i in cola["id"]]
 cola["entró por"] = cola["canal"]
 

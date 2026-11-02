@@ -7,7 +7,7 @@ import sqlite3
 
 import pandas as pd
 
-CORTE = "2026-10-31"
+CORTE = "2026-11-02"  # «hoy» en la demo: último día con datos
 MARGEN_BRUTO = 0.30   # supuesto: la demo no tiene costes de cuidadoras; con el margen real el LTV cambia
 MESES_LTV = 12
 
