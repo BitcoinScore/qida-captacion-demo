@@ -35,6 +35,12 @@ html, body, p, li, label, td, th, input, textarea, button, .stMarkdown {{font-fa
 h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: {VERDE}; font-weight: 400 !important;
   letter-spacing: -.01em;}}
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
+/* Aire antes de cada subtítulo, en todas las pantallas (salvo si abre la columna o la página) */
+[data-testid="stMarkdownContainer"] h4 {{margin-top: 1.8rem !important; padding-top: 0 !important;}}
+[data-testid="stMarkdownContainer"] h3 {{margin-top: 2rem !important;}}
+[data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child [data-testid="stMarkdownContainer"] h4,
+[data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child [data-testid="stMarkdownContainer"] h3
+  {{margin-top: 0 !important;}}
 [data-testid="stSidebar"] {{background: {FONDO}; border-right: 1px solid {BORDE};}}
 [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {{color: {GRIS_TEXTO} !important;}}
 .kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;
