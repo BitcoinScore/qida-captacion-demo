@@ -1,3 +1,4 @@
+import re
 import sqlite3
 import sys
 from contextlib import contextmanager
@@ -40,9 +41,11 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
   box-sizing: border-box; display: flex; flex-direction: column;}}
 .fila-kpi {{display: grid; gap: 12px; align-items: stretch; margin-bottom: 4px;}}
 @media (max-width: 900px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
-.kpi .etiqueta {{min-height: 2.8em; line-height: 1.4; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
-.kpi .valor {{font-size: 2rem; font-weight: 700; color: {VERDE}; line-height: 1.15; margin: 4px 0;}}
+.kpi .etiqueta {{min-height: var(--alto-etiqueta, auto); line-height: 1.4; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
+.kpi .valor {{font-size: var(--tam-valor, 2.2rem); font-weight: 700; color: {VERDE}; line-height: 1.1; margin: 6px 0 4px;
+  letter-spacing: -.01em;}}
 .kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
+.kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
 .kpi.alerta .valor {{color: {NARANJA_TEXTO};}}
 .kpi .bien {{color: {VERDE_TEXTO}; font-weight: 700;}}
@@ -188,6 +191,13 @@ class Fila:
         self.tarjetas.append(html)
 
     def pintar(self) -> None:
-        st.markdown(f"<div class='fila-kpi' style='grid-template-columns:repeat({len(self.tarjetas)}, 1fr)'>"
-                    + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
+        n = len(self.tarjetas)
+        # Cuantas menos tarjetas, más grande la cifra (si no, la caja se queda vacía)
+        tam = {1: "3.4rem", 2: "3.2rem", 3: "3rem", 4: "2.7rem", 5: "2.4rem"}.get(n, "2.2rem")
+        # La etiqueta reserva dos líneas solo si alguna de la fila no cabe en una
+        etiquetas = [re.sub(r"<[^>]+>", "", e) for t in self.tarjetas for e in re.findall(r"class='etiqueta'>(.*?)</div>", t)]
+        cabe = 110 / n  # caracteres aproximados por línea a este ancho
+        alto = "2.8em" if any(len(e) > cabe for e in etiquetas) else "auto"
+        st.markdown(f"<div class='fila-kpi' style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam};"
+                    f"--alto-etiqueta:{alto}'>" + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
 

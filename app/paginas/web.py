@@ -51,14 +51,21 @@ st.markdown(
 .confianza b {{display:block; font-size:1.5rem; color:{comun.VERDE}}}
 .servicio {{border:1px solid {comun.BORDE}; border-radius:16px; padding:1rem; height:100%}}
 .servicio b {{color:{comun.VERDE}; font-size:1.05rem}}
-.paso {{text-align:center; padding:.6rem}}
-.paso .n {{display:inline-block; width:2.1rem; height:2.1rem; line-height:2.1rem; border-radius:99px; background:{comun.VERDE};
-  color:white; font-weight:700}}
+.pasos {{display:grid; grid-template-columns:repeat(4, 1fr); gap:0; margin:.4rem 0 1rem}}
+.paso {{display:flex; flex-direction:column; gap:.3rem; padding-right:1rem}}
+.paso .linea {{display:flex; align-items:center; margin-bottom:.5rem}}
+.paso .linea::after {{content:""; flex:1; height:2px; background:{comun.BORDE}; margin-left:.5rem}}
+.paso:last-child .linea::after {{display:none}}
+.paso .n {{flex:none; display:inline-flex; align-items:center; justify-content:center; width:2.3rem; height:2.3rem;
+  border-radius:99px; background:{comun.VERDE}; color:white; font-weight:700; font-size:1.05rem}}
+.paso b {{color:{comun.VERDE}; font-size:1.02rem; line-height:1.3}}
+.paso > span {{color:#4d5d5c; font-size:.92rem; line-height:1.45}}
 .aviso-noche {{background:#fff4ef; border:1px solid #f4c3b0; color:#7a3418; border-radius:14px; padding:.8rem 1rem;}}
 @media (max-width: 640px) {{
   .hero {{padding:1.4rem 1.3rem}} .hero h1 {{font-size:2rem}}
   .cab img, .cab .marca-texto {{display:none}}  /* en móvil el logotipo ya está en la barra superior */
   .st-key-boton-chat {{right:14px; bottom:14px}}
+  .pasos {{grid-template-columns:1fr 1fr; row-gap:1.2rem}} .paso:nth-child(2) .linea::after {{display:none}}
 }}
 </style>
 """,
@@ -151,10 +158,13 @@ with izq:
         col.markdown(f"<div class='servicio'><b>{titulo}</b><br><span style='color:#4d5d5c'>{texto}</span></div>",
                      unsafe_allow_html=True)
     st.markdown("#### Cómo funciona")
-    PASOS = ["Nos cuentas tu caso", "Tu asesor/a familiar te llama", "Valoramos tu caso gratis y preparamos tu plan",
-             "Te proponemos la cuidadora que mejor encaja y tú decides"]
-    for col, (n, texto) in zip(st.columns(4), enumerate(PASOS, 1)):
-        col.markdown(f"<div class='paso'><span class='n'>{n}</span><br>{texto}</div>", unsafe_allow_html=True)
+    PASOS = [("Nos cuentas tu caso", "Por teléfono, en el formulario o con el asistente."),
+             ("Te llama tu asesor/a", "Entiende qué necesitas y te explica el servicio."),
+             ("Valoración gratuita", "Preparamos tu plan con una Referente Social."),
+             ("Eliges a tu cuidadora", "Te proponemos la que mejor encaja; tú decides.")]
+    st.markdown("<div class='pasos'>" + "".join(
+        f"<div class='paso'><div class='linea'><span class='n'>{n}</span></div><b>{titulo}</b><span>{texto}</span></div>"
+        for n, (titulo, texto) in enumerate(PASOS, 1)) + "</div>", unsafe_allow_html=True)
 
 with der:
     st.markdown("<div id='formulario'></div>", unsafe_allow_html=True)

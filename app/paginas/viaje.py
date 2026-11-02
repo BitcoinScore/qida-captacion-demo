@@ -139,11 +139,11 @@ d = tasa_dia - tasa_noche
 n_grupo = math.ceil((1.96 + 0.84) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
 fila = comun.Fila()
 c1 = c2 = c3 = fila
-comun.kpi(c1, "Si la noche convirtiera como el día", f"+{es(extra_mes * 12, 0)} familias al año",
+comun.kpi(c1, "Si la noche convirtiera como el día", f"+{es(extra_mes * 12, 0)}<small>familias al año</small>",
           f"de noche contrata el {es(100 * con_noche / n_noche)} %; de día, el {es(100 * con_dia / n_dia)} %")
-comun.kpi(c2, "Margen que supondría", f"~{es(extra_mes * 12 * ltv_medio / 1000, 0)} mil €/año",
+comun.kpi(c2, "Margen que supondría", f"~{es(extra_mes * 12 * ltv_medio / 1000, 0)}<small>mil € al año</small>",
           f"valor medio de una familia en 12 meses: {es(ltv_medio, 0, ' €')} (margen supuesto del 30 %)")
-comun.kpi(c3, "Tamaño del A/B", f"{es(n_grupo, 0)} familias por grupo",
+comun.kpi(c3, "Tamaño del A/B", f"{es(n_grupo, 0)}<small>familias por grupo</small>",
           f"para ver la diferencia en llegada a la valoración ({es(100 * tasa_noche, 0)} % → {es(100 * tasa_dia, 0)} %)")
 fila.pintar()
 comun.nota("**Cómo lo probaría:** asistente sí/no en semanas alternas en una ciudad. Métrica principal: familias de noche "
