@@ -143,7 +143,7 @@ k = [fila] * 6
 comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
           100 * (act["familias"] / ant["familias"] - 1) if comparable and ant["familias"] else None, unidad_tendencia=" %",
           icono="groups", frente=frente)
-comun.kpi(k[1], "De noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
+comun.kpi(k[1], "Piden ayuda de noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
           var(act["noche"], ant["noche"]), mejor_si_sube=False, icono="dark_mode", frente=frente)
 lejos = act["rapidas"] < OBJ_LLAMADAS / 2
 e = estado(act["rapidas"], OBJ_LLAMADAS)
