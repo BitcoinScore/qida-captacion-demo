@@ -14,7 +14,7 @@ La idea: **antes de construir IA, medir el embudo**; y construir solo donde se p
 | Pantalla | Para quién | Qué responde |
 |---|---|---|
 | **Web con asistente de noche** | La familia | Concepto de web con un asistente virtual (IA declarada) que, fuera de horario, entiende el caso, deja la llamada agendada y pasa a una persona si hace falta |
-| **Viaje de la familia** | Dirección y marketing | 5 KPIs del mes, el embudo completo hasta «siguen al año» y el mapa del viaje (service blueprint) con qué construiría en cada etapa |
+| **Viaje de la familia** | Dirección y marketing | 6 indicadores del periodo elegido (de «hoy» al último año) frente a su objetivo y al periodo anterior, el embudo de las mismas familias hasta «siguen al año» y el mapa del viaje (service blueprint). Cada tarjeta y cada etapa del embudo se pulsan: abren el desglose y el listado de familias |
 | **Canales y ciudades** | Marketing | CAC de pago y combinado, LTV a 12 meses, LTV:CAC y payback por canal; conversión con intervalos de confianza; mapa; atribución |
 | **Cola de llamadas** | Asesores familiares | A quién llamar primero (puntuación explicable), velocidad de respuesta, curva de ganancia y calibración |
 | **Retención** | Marketing y Referentes Sociales | Permanencia (Kaplan-Meier), triángulo de cohortes y permanencia por canal |
