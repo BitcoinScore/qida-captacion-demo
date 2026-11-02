@@ -46,9 +46,15 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 .kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;
   box-sizing: border-box; display: flex; flex-direction: column;}}
 .fila-kpi {{display: grid; gap: 12px; align-items: stretch; margin-bottom: 4px;}}
+@media (max-width: 1400px) {{.fila-kpi.ancha {{grid-template-columns: repeat(3, 1fr) !important; --escala: 3.6 !important; --tam-valor: 3.2rem !important;}}}}
 @media (max-width: 900px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
-.kpi .etiqueta {{min-height: var(--alto-etiqueta, auto); line-height: 1.4; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
-.kpi .valor {{font-size: var(--tam-valor, 2.2rem); font-weight: 700; color: {VERDE}; line-height: 1.1; margin: 6px 0 4px;
+.kpi .cabeza {{display: flex; align-items: center; gap: 10px; min-height: 38px;}}
+.kpi .icono {{flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+  border-radius: 10px; background: {FONDO}; color: {VERDE}; font-size: 21px;
+  font-family: 'Material Symbols Rounded' !important; font-variation-settings: 'FILL' 0, 'wght' 500;}}
+.kpi.alerta .icono {{background: #fff1ea; color: {NARANJA_TEXTO};}}
+.kpi .etiqueta {{line-height: 1.3; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
+.kpi .valor {{white-space: nowrap; font-size: clamp(1.9rem, calc(var(--escala, 3.4) * 1vw), var(--tam-valor, 2.4rem)); font-weight: 700; color: {VERDE}; line-height: 1.1; margin: 6px 0 4px;
   letter-spacing: -.01em;}}
 .kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
 .kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
@@ -103,7 +109,7 @@ def nota(texto: str, tipo: str = "clave") -> None:
 
 
 def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None = None, mejor_si_sube: bool = True,
-        unidad_tendencia: str = " p. p.", alerta: bool = False) -> None:
+        unidad_tendencia: str = " p. p.", alerta: bool = False, icono: str | None = None) -> None:
     """Tarjeta de KPI: etiqueta, valor grande, variación frente al mes anterior y contexto.
 
     La variación se colorea según mejore o empeore; `alerta=True` marca la tarjeta entera cuando el valor está lejos del
@@ -114,7 +120,9 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
         mejora = (tendencia > 0) == mejor_si_sube
         flecha = (f"<span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
                   f"{es(abs(tendencia))}{unidad_tendencia}</span> frente al mes anterior · ")
-    col.markdown(f"<div class='kpi{' alerta' if alerta else ''}'><div class='etiqueta'>{etiqueta}</div>"
+    simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
+    col.markdown(f"<div class='kpi{' alerta' if alerta else ''}'><div class='cabeza'>{simbolo}"
+                 f"<div class='etiqueta'>{etiqueta}</div></div>"
                  f"<div class='valor'>{valor}</div><div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
 
 
@@ -199,11 +207,8 @@ class Fila:
     def pintar(self) -> None:
         n = len(self.tarjetas)
         # Cuantas menos tarjetas, más grande la cifra (si no, la caja se queda vacía)
-        tam = {1: "3.4rem", 2: "3.2rem", 3: "3rem", 4: "2.7rem", 5: "2.4rem"}.get(n, "2.2rem")
-        # La etiqueta reserva dos líneas solo si alguna de la fila no cabe en una
-        etiquetas = [re.sub(r"<[^>]+>", "", e) for t in self.tarjetas for e in re.findall(r"class='etiqueta'>(.*?)</div>", t)]
-        cabe = 110 / n  # caracteres aproximados por línea a este ancho
-        alto = "2.8em" if any(len(e) > cabe for e in etiquetas) else "auto"
-        st.markdown(f"<div class='fila-kpi' style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam};"
-                    f"--alto-etiqueta:{alto}'>" + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
+        tam = {1: "3.8rem", 2: "3.6rem", 3: "3.4rem", 4: "3.1rem", 5: "2.9rem"}.get(n, "2.8rem")
+        escala = {1: 6, 2: 5, 3: 3.6, 4: 3, 5: 2.6}.get(n, 2.3)  # la cifra se ajusta al ancho: nunca se parte
+        st.markdown(f"<div class='fila-kpi{' ancha' if n >= 5 else ''}' style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam};--escala:{escala};"
+                    "'>" + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
 

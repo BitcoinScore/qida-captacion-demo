@@ -59,14 +59,14 @@ if all(d.empty for d in datos.values()):
 
 fila = comun.Fila()
 c1 = c2 = c3 = fila
-for col, (clave, titulo, sub) in zip((c1, c2, c3), (
-        ((CONJUNTOS[2][0], "v3"), "v3 con casos nuevos", "la nota que cuenta"),
-        ((CONJUNTOS[1][0], "v2"), "v2 con casos nuevos", "antes de la regla de fidelidad"),
-        ((CONJUNTOS[0][0], "v3"), "v3 con los casos de ajuste", "inflada: con ellos se ajustó"))):
+for col, (clave, titulo, sub, icono) in zip((c1, c2, c3), (
+        ((CONJUNTOS[2][0], "v3"), "v3 con casos nuevos", "la nota que cuenta", "verified"),
+        ((CONJUNTOS[1][0], "v2"), "v2 con casos nuevos", "antes de la regla de fidelidad", "history"),
+        ((CONJUNTOS[0][0], "v3"), "v3 con los casos de ajuste", "inflada: con ellos se ajustó", "tune"))):
     if not datos[clave].empty:
         p, lo, hi, n = nota_de(datos[clave])
         comun.kpi(col, titulo, f"{es(p, 0)} %", f"{sub} · intervalo del 95 %: {es(lo, 0)}–{es(hi, 0)} % · "
-                                               f"{n} conversaciones")
+                                               f"{n} conversaciones", icono=icono)
 
 fila.pintar()
 st.markdown("#### Respuestas correctas por versión (reglas + revisor automático), con intervalo del 95 %")

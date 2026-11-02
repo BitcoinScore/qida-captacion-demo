@@ -36,12 +36,12 @@ fila = comun.Fila()
 k1 = k2 = k3 = fila
 comun.kpi(k1, "Llamadas en menos de 1 h", f"{es(ultimo['pct_menos_1h'], 0)} %",
           f"{comun.mes_es(ultimo['mes'])} · objetivo: 50 %", ultimo["pct_menos_1h"] - previo["pct_menos_1h"],
-          alerta=ultimo["pct_menos_1h"] < 25)
+          alerta=ultimo["pct_menos_1h"] < 25, icono="phone_in_talk")
 comun.kpi(k2, "Espera media hasta la primera llamada", es(ultimo["horas_media"], 1, " h"),
           "las familias de noche esperan a la mañana", ultimo["horas_media"] - previo["horas_media"],
-          mejor_si_sube=False, unidad_tendencia=" h")
+          mejor_si_sube=False, unidad_tendencia=" h", icono="schedule")
 comun.kpi(k3, "Contratos cubiertos con el 30 % mejor puntuado", f"{es(cubiertos_30, 0)} %",
-          "frente al 30 % si se llama en orden de llegada")
+          "frente al 30 % si se llama en orden de llegada", icono="target")
 fila.pintar()
 
 # ── La cola de hoy ──────────────────────────────────────────────────────────────────────────────────────────────
