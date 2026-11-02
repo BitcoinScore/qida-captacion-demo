@@ -87,8 +87,9 @@ def puntos_ic(df: pd.DataFrame, etiqueta: str, alto: int = 380, rango: tuple[flo
         x=d["ic_alto"], y=d["canal"], mode="text", showlegend=False, textposition="middle right", hoverinfo="skip",
         text=[f"  <b>{es(p)} %</b> <span style='color:{GRIS}'>· {es(n, 0)} familias</span>"
               for p, n in zip(d["pct"], d["familias"])]))
-    maximo = rango[1] if rango else d["ic_alto"].max() * 1.45
-    fig.update_layout(xaxis=dict(title=etiqueta, range=[rango[0] if rango else 0, maximo], ticksuffix=" %", showgrid=True),
+    maximo = rango[1] if rango else d["ic_alto"].max() * 1.9
+    fig.update_layout(xaxis=dict(title=etiqueta, range=[rango[0] if rango else 0, maximo], ticksuffix=" %", showgrid=True,
+                                 tickvals=[t for t in range(0, 101, 20) if t >= (rango[0] if rango else 0)]),
                       yaxis=dict(title=None, showgrid=False))
     return _limpio(fig, alto)
 
@@ -99,9 +100,9 @@ def ltv_cac(df: pd.DataFrame, alto: int = 380) -> go.Figure:
     etiquetas = [c + (" (pocos datos)" if n < 50 else "") for c, n in zip(d["canal"], d["contratos"])]
     fig = go.Figure(go.Bar(x=d["ltv_cac"], y=etiquetas, orientation="h", marker_color=colores,
                            text=[es(v, 1, "×") for v in d["ltv_cac"]], textposition="outside", cliponaxis=False))
-    fig.add_vline(x=3, line=dict(color=GRIS, dash="dash"), annotation_text="mínimo sano: 3×",
+    fig.add_vline(x=3, line=dict(color=GRIS, dash="dot", width=1), layer="below", annotation_text="mínimo sano: 3×",
                   annotation_position="top", annotation_font_color=GRIS)
-    fig.update_layout(xaxis=dict(title="Valor de una familia en 12 meses ÷ coste de captarla",
+    fig.update_layout(xaxis=dict(title="veces que el valor de una familia en 12 meses cubre lo que costó captarla",
                                  range=[0, d["ltv_cac"].max() * 1.18 if len(d) else 10], showgrid=False),
                       yaxis_title=None)
     return _limpio(fig, alto)
@@ -167,10 +168,12 @@ def destino_por_canal(flujos: pd.DataFrame, alto: int = 380) -> go.Figure:
         fig.add_bar(y=d["canal"], x=d[nombre], name=nombre, orientation="h", marker_color=color,
                     text=d[nombre].map(lambda v: es(v, 0) + " %" if v >= 6 else ""), textposition="inside",
                     insidetextanchor="middle", textfont=dict(color=texto))
+    _limpio(fig, alto)
     fig.update_layout(barmode="stack", xaxis=dict(title="de cada 100 familias que llegan por ese canal", range=[0, 100],
-                                                  ticksuffix=" %", showgrid=False),
-                      yaxis_title=None, legend=dict(orientation="h", y=1.12, x=0))
-    return _limpio(fig, alto)
+                                                  ticksuffix=" %", showgrid=False, dtick=20),
+                      yaxis_title=None, legend=dict(orientation="h", y=-0.28, x=0, traceorder="normal"),
+                      margin=dict(l=10, r=10, t=10, b=90))
+    return fig
 
 
 def columnas(df: pd.DataFrame, x: str, y: str, etiqueta_x: str, etiqueta_y: str, alto: int = 340,

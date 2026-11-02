@@ -62,21 +62,18 @@ for _, f in por_ciudad.iterrows():
 por_ciudad["pct_alta"] = (100 * por_ciudad["contratos"] / por_ciudad["leads"]).round(1)
 por_ciudad["estado"], por_ciudad["ic"] = estados, ics
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([":material/euro: ¿Qué canal compensa?", ":material/target: ¿Cuál convierte?",
-                                        ":material/grid_view: Canal × ciudad", ":material/map: ¿Dónde?",
-                                        ":material/alt_route: Atribución"])
 
-with tab1:
-    izq, der = st.columns([2, 3])
-    with izq:
-        st.markdown("**Cuántas veces vuelve lo invertido en cada canal**")
-        st.plotly_chart(graficos.ltv_cac(eco), width="stretch")
-    with der:
+st.divider()
+st.subheader("1. ¿Qué canal compensa?")
+with st.container():
+    st.markdown("**Cuántas veces vuelve lo invertido en cada canal**")
+    comun.grafico(graficos.ltv_cac(eco, alto=320))
+    with st.container():
         st.markdown("**Rentabilidad por canal**")
         orden = eco.assign(_o=eco["ltv_cac"].fillna(-1)).sort_values("_o", ascending=False)
         euros = lambda v: es(v, 0, " €") if v == v and v else "—"  # noqa: E731
         tabla = pd.DataFrame({
-            "canal": [c + (" ·" if n < 50 else "") for c, n in zip(orden["canal"], orden["contratos"])],
+            "canal": [c + (" (pocos datos)" if n < 50 else "") for c, n in zip(orden["canal"], orden["contratos"])],
             "familias": orden["familias"].map(lambda v: es(v, 0)),
             "contratos": orden["contratos"].map(lambda v: es(v, 0)),
             "gasto": orden["gasto_total"].map(euros),
@@ -86,26 +83,30 @@ with tab1:
             "CAC total": orden["cac_combinado"].map(euros),
             "valor 12 meses": orden["ltv_12m"].map(euros),
             "retorno": orden["ltv_cac"].map(lambda v: es(v, 1, "×") if v == v else "—"),
-            "meses para recuperarlo": orden["payback_meses"].map(lambda v: "—" if v != v or v is None else es(v, 0)),
+            "recupera (meses)": orden["payback_meses"].map(lambda v: "—" if v != v or v is None else es(v, 0)),
         })
         st.dataframe(tabla, hide_index=True, width="stretch")
         total = eco["gasto_total"].sum() / max(eco["contratos"].sum(), 1)
         st.caption(f"CAC total de todos los canales en el periodo: **{es(total, 0, ' €')}** por contrato (en la portada, "
                    "el del mes de septiembre). CAC de pago = solo medios; total = medios + equipo y acuerdos. "
-                   "· = menos de 50 contratos: cifra poco fiable (usa la permanencia general). «Teléfono directo» no tiene "
+                   "«Pocos datos» = menos de 50 contratos: cifra poco fiable (usa la permanencia general). «Teléfono directo» no tiene "
                    "coste asignado. Valor con margen bruto **supuesto** del 30 %.")
 
-with tab2:
+st.divider()
+st.subheader("2. ¿Cuál convierte?")
+with st.container():
     izq, der = st.columns(2)
     with izq:
         st.markdown("**De cada 100 familias, cuántas contratan en 30 días**")
-        st.plotly_chart(graficos.puntos_ic(eco, "% que contrata (punto) e intervalo del 95 % (barra)"), width="stretch")
+        comun.grafico(graficos.puntos_ic(eco, "% que contrata (punto) e intervalo del 95 % (barra)"))
         st.caption("Si dos intervalos se solapan, la diferencia puede ser azar.")
     with der:
         st.markdown("**Qué pasa con cada 100 familias, por canal**")
-        st.plotly_chart(graficos.destino_por_canal(flujos), width="stretch")
+        comun.grafico(graficos.destino_por_canal(flujos))
 
-with tab3:
+st.divider()
+st.subheader("3. Canal × ciudad")
+with st.container():
     metrica = st.radio("Mostrar", ["% que contrata", "CAC total (€ por contrato)"], horizontal=True)
     c = cruce.copy()
     c["valor"] = (100 * c["contratos"] / c["familias"]) if metrica.startswith("%") else \
@@ -119,19 +120,23 @@ with tab3:
     fig = go.Figure(go.Heatmap(z=tabla.values, x=tabla.columns, y=tabla.index, text=texto, texttemplate="%{text}",
                                colorscale=escala, showscale=False, hoverinfo="skip"))
     graficos._limpio(fig, 380)
-    st.plotly_chart(fig, width="stretch")
+    comun.grafico(fig)
     st.caption("Para preguntas como «¿subo Meta en Valencia?». · = menos de 15 contratos en esa celda: no decidir solo con ella. "
                "En coste, más oscuro = más barato.")
 
-with tab4:
-    st.plotly_chart(graficos.mapa(por_ciudad), width="stretch")
+st.divider()
+st.subheader("4. ¿Dónde?")
+with st.container():
+    comun.grafico(graficos.mapa(por_ciudad))
     if (por_ciudad["estado"] == "en la media").all():
         comun.nota("Ninguna ciudad convierte de forma significativamente distinta al resto: las diferencias son azar.",
                    "neutra")
     st.caption("Tamaño = volumen (área). Color = solo si la conversión difiere del resto con un 95 % de confianza. "
                "Cobertura (gris) y anuncios en Meta (anillo): reales, de la web y la Biblioteca de anuncios (2 de noviembre de 2026).")
 
-with tab5:
+st.divider()
+st.subheader("5. Atribución")
+with st.container():
     st.markdown("**Contratos por canal según el modelo de atribución**")
     st.dataframe(atrib.rename(columns={"contratos_ultimo_contacto": "último contacto (el que usamos)",
                                        "contratos_primer_contacto": "primer contacto"}),

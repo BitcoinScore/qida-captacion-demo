@@ -68,7 +68,13 @@ for col, (clave, titulo, sub) in zip((c1, c2, c3), (
                                                f"{n} conversaciones")
 
 st.markdown("#### Respuestas correctas por versión (reglas + revisor automático), con intervalo del 95 %")
+CORTO = {CONJUNTOS[0][0]: "casos de ajuste", CONJUNTOS[1][0]: "casos nuevos 1", CONJUNTOS[2][0]: "casos nuevos 2"}
 fig = go.Figure()
+orden = []
+for v in VERSIONES:  # una categoría por barra, en orden de versión: sin huecos
+    for conjunto, _, _ in CONJUNTOS:
+        if not datos.get((conjunto, v), pd.DataFrame()).empty:
+            orden.append(f"<b>{v}</b><br>{CORTO[conjunto]}")
 for conjunto, color, ficheros in CONJUNTOS:
     xs, ys, sup, inf, textos = [], [], [], [], []
     for v in VERSIONES:
@@ -76,18 +82,18 @@ for conjunto, color, ficheros in CONJUNTOS:
         if d is None or d.empty:
             continue
         p, lo, hi, n = nota_de(d)
-        xs.append(v); ys.append(p); sup.append(hi - p); inf.append(p - lo); textos.append(es(p, 0) + " %")
-    if xs:
+        xs.append(f"<b>{v}</b><br>{CORTO[conjunto]}"); ys.append(p); sup.append(hi - p); inf.append(p - lo)
+        textos.append(f"<b>{es(p, 0)} %</b>")
+    if ys:
         fig.add_bar(x=xs, y=ys, name=conjunto, marker_color=color, text=textos, textposition="inside",
-                    insidetextanchor="end", textfont=dict(color="white" if color == graficos.ACENTO else "#333333"),
+                    insidetextanchor="start", textfont=dict(color="white" if color == graficos.ACENTO else "#333333"),
                     error_y=dict(type="data", symmetric=False, array=sup, arrayminus=inf, color=graficos.GRIS,
                                  thickness=1.2, width=4))
-graficos._limpio(fig, 400)
-fig.update_layout(barmode="group", legend=dict(orientation="h", y=1.13),
-                  xaxis=dict(type="category", categoryorder="array", categoryarray=VERSIONES,
-                             title="versión del asistente"),
-                  yaxis=dict(title="% de respuestas correctas", range=[0, 110], showgrid=False, ticksuffix=" %"))
-st.plotly_chart(fig, width="stretch")
+graficos._limpio(fig, 420)
+fig.update_layout(barmode="overlay", bargap=0.35, legend=dict(orientation="h", y=1.12),
+                  xaxis=dict(title=None, type="category", categoryorder="array", categoryarray=orden, tickfont=dict(size=12)),
+                  yaxis=dict(title="% de respuestas correctas", range=[0, 105], showgrid=False, ticksuffix=" %"))
+comun.grafico(fig)
 st.caption("**v1 → v1 (revisor v2):** mismas respuestas, revisor corregido: el salto era del revisor. **v2:** asistente "
            "corregido. **v3:** regla de fidelidad, tras ver que la v2 inventaba políticas con casos nuevos. La 1.ª tanda "
            "de casos nuevos ya se vio al diseñar la v3; por eso la que cuenta es la 2.ª, escrita antes de evaluarla.")

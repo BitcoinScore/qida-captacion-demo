@@ -167,3 +167,9 @@ def selector_ciudades() -> list[str]:
         nota("Elige al menos una ciudad en la barra lateral.", "alerta")
         st.stop()
     return elegidas
+
+
+def grafico(fig) -> None:
+    """Pinta un gráfico Plotly a todo el ancho y sin la barra de herramientas (zoom, cámara…), que distrae."""
+    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False, "scrollZoom": False})
+

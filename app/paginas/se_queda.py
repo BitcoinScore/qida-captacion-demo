@@ -28,11 +28,12 @@ with izq:
     for mes, texto in ((3, "3 meses"), (12, "1 año")):
         if mes in s.index:
             fig.add_annotation(x=mes, y=s[mes], text=f"<b>{texto}: {es(s[mes])} %</b>", showarrow=True, arrowhead=0,
-                               ay=-40, font=dict(color=comun.VERDE_TEXTO, size=14))
+                               arrowcolor=comun.VERDE_TEXTO, ax=55, ay=-45, bgcolor="white", borderpad=3,
+                               font=dict(color=comun.VERDE_TEXTO, size=14))
     graficos._limpio(fig, 360)
     fig.update_layout(xaxis_title="meses desde que contratan",
                       yaxis=dict(title="% que sigue", range=[0, 105], showgrid=False, ticksuffix=" %"))
-    st.plotly_chart(fig, width="stretch")
+    comun.grafico(fig)
     st.caption("Kaplan-Meier usa a todas las familias, también las que llevan poco tiempo, sin sesgar la curva.")
 
 with der:
@@ -46,8 +47,7 @@ with der:
         lo, hi = metricas.wilson(round(n * s3 / 100), n)
         filas.append({"canal": canal, "pct": s3, "ic_bajo": lo, "ic_alto": hi, "familias": n})
     if filas:
-        st.plotly_chart(graficos.puntos_ic(pd.DataFrame(filas), "% que sigue a los 3 meses", alto=360, rango=(50, 118)),
-                        width="stretch")
+        comun.grafico(graficos.puntos_ic(pd.DataFrame(filas), "% que sigue a los 3 meses", alto=360, rango=(50, 140)))
     else:
         comun.nota("Con las ciudades elegidas aún no hay suficientes familias con tres meses de antigüedad.", "neutra")
 
@@ -61,7 +61,7 @@ fig = go.Figure(go.Heatmap(
 ))
 graficos._limpio(fig, 460)
 fig.update_layout(yaxis=dict(autorange="reversed", type="category"))
-st.plotly_chart(fig, width="stretch")
+comun.grafico(fig)
 st.caption("Cada fila es un mes de contrato; cada columna, los meses que han pasado. Si una cohorte reciente empeora, "
            "se ve aquí antes que en la media.")
 

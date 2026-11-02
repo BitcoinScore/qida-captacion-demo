@@ -110,12 +110,12 @@ with izq:
     fig.update_layout(xaxis=dict(title="% de familias llamadas, de más a menos prometedoras", ticksuffix=" %"),
                       yaxis=dict(title="% de los contratos que se cubren", ticksuffix=" %", showgrid=False),
                       legend=dict(orientation="h", y=1.12))
-    st.plotly_chart(fig, width="stretch")
+    comun.grafico(fig)
     st.caption("Comprobado con agosto y septiembre de 2026, meses que el modelo no vio. Contrato = en 30 días.")
 with der:
     st.markdown("#### Cuanto más esperan, menos contratan")
-    st.plotly_chart(graficos.columnas(espera, "espera", "pct_contrata", "tiempo hasta la primera llamada",
-                                      "% que contrata", resaltar="1. < 1 h"), width="stretch")
+    comun.grafico(graficos.columnas(espera, "espera", "pct_contrata", "tiempo hasta la primera llamada",
+                                      "% que contrata", resaltar="1. < 1 h"))
     st.caption("Es una asociación: las familias de noche también son distintas. Que llamar antes cause más contratos se "
                "prueba con un A/B (asistente sí/no).")
 

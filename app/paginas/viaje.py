@@ -72,7 +72,7 @@ ETAPAS = [
      "arreglo": "→ Seguimiento y pedir que nos recomienden"},
     {"nombre": "Siguen al año", "valor": round(contratos * r12), "estimado": True},
 ]
-st.plotly_chart(graficos.embudo_viaje(ETAPAS), width="stretch", config={"displayModeBar": False})
+comun.grafico(graficos.embudo_viaje(ETAPAS))
 st.caption(f"Familias que pidieron ayuda de {comun.mes_es(desde)} a {comun.mes_es(hasta)}; cada paso cuenta si ocurre en "
            "los 30 días siguientes. Las dos últimas etapas (trazo discontinuo) son estimaciones con la curva de permanencia.")
 
