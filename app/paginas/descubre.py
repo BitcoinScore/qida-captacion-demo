@@ -98,10 +98,13 @@ with st.container():
 .rent {{width:100%; border-collapse:collapse; font-size:.92rem}}
 .rent th {{border-bottom:2px solid {comun.BORDE} !important; text-align:left; font-weight:600; color:{comun.GRIS_TEXTO}; font-size:.78rem; text-transform:uppercase;
   letter-spacing:.04em; padding:8px 10px; border-bottom:2px solid {comun.BORDE}}}
-.rent th.grupo {{text-align:center; color:{comun.VERDE_TEXTO}; border-bottom:1px solid {comun.BORDE} !important}}
+.rent th.grupo {{text-align:center; color:{comun.VERDE_TEXTO}; border-bottom:none !important; padding:8px 14px 0}}
+.rent th.grupo span {{display:block; padding-bottom:6px; border-bottom:2px solid {comun.VERDE_MEDIO}}}
 .rent tr:first-child th:first-child {{border-bottom:none !important}}
 .rent td {{padding:10px; border-bottom:1px solid #EEF3F3 !important; font-variant-numeric:tabular-nums; vertical-align:middle}}
 .rent td.canal {{font-weight:600; color:{comun.VERDE}; white-space:nowrap}}
+.rent td:not(.canal), .rent tr:nth-child(2) th:not(:first-child) {{text-align:center}}
+.rent .barra {{justify-content:center}}
 .rent .poco {{display:inline-block; margin-top:3px; font-size:.72rem; font-weight:500; color:{comun.GRIS_TEXTO}; border:1px solid {comun.BORDE};
   border-radius:99px; padding:1px 7px}}
 .rent .barra {{display:flex; align-items:center; gap:10px; min-width:220px}}
@@ -112,7 +115,8 @@ with st.container():
 .rent tr.sin td.canal {{font-style:normal}}
 </style>
 <table class="rent">
-<tr><th></th><th colspan="2" class="grupo">Volumen</th><th colspan="2" class="grupo">Una familia</th><th colspan="2" class="grupo">Rentabilidad</th></tr>
+<tr><th></th><th colspan="2" class="grupo"><span>Volumen</span></th><th colspan="2" class="grupo"><span>Una familia</span></th>
+<th colspan="2" class="grupo"><span>Rentabilidad</span></th></tr>
 <tr><th>Canal</th><th>Familias</th><th>Contratos</th><th>Cuesta captarla</th><th>Deja en 12 meses</th>
 <th>Retorno · la raya marca 3×</th><th>Se recupera en</th></tr>
 {''.join(filas)}
