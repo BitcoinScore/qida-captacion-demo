@@ -1,0 +1,356 @@
+[
+ {
+  "id": "S01",
+  "categoria": "consulta",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Buenas, mi padre tiene 92 años y se está quedando muy débil, vive en Burgos"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S02",
+  "categoria": "consulta",
+  "hora": "2026-11-11T12:20",
+  "mensajes": [
+   "¿Las cuidadoras tienen formación? Mi madre tiene demencia avanzada"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S03",
+  "categoria": "consulta",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Cuánto tardáis en empezar desde que llamo?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S04",
+  "categoria": "consulta",
+  "hora": "2026-11-14T19:10",
+  "mensajes": [
+   "¿Puedo elegir yo a la cuidadora o me la mandáis vosotros?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S05",
+  "categoria": "consulta",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Mi hermano y yo vivimos fuera y mamá está sola en Gijón"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S06",
+  "categoria": "completa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Necesito alguien para las noches en Alicante",
+   "Para mi suegra, desde la semana que viene",
+   "Mi número es 655 432 100"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": true
+  },
+  "nota": ""
+ },
+ {
+  "id": "S07",
+  "categoria": "completa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Hola, para mi padre en Pamplona",
+   "Por horas, mañanas",
+   "Soy Javier, 699 101 202, llamadme"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": true
+  },
+  "nota": ""
+ },
+ {
+  "id": "S08",
+  "categoria": "precio",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿El precio incluye la Seguridad Social de la cuidadora interna?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S09",
+  "categoria": "precio",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Hay descuento si contrato muchas horas?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S10",
+  "categoria": "precio",
+  "hora": "2026-11-14T19:10",
+  "mensajes": [
+   "¿Cuánto cuesta un fin de semana completo?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S11",
+  "categoria": "dependencia",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Me ayudáis a pedir la valoración del grado de dependencia?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S12",
+  "categoria": "dependencia",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Con un Grado II, ¿cuántas horas al mes me pagan?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S13",
+  "categoria": "dependencia",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿La ayuda la cobráis vosotros o me la ingresan a mí?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S14",
+  "categoria": "urgencia",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Mi padre se ha desmayado en el baño y no reacciona"
+  ],
+  "esperado": {
+   "escalar": true,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S15",
+  "categoria": "urgencia",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Mi madre dice que le duele mucho el pecho"
+  ],
+  "esperado": {
+   "escalar": true,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S16",
+  "categoria": "queja",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "La cuidadora de mi abuelo llega siempre tarde y nadie me coge el teléfono"
+  ],
+  "esperado": {
+   "escalar": true,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S17",
+  "categoria": "persona",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Pásame con alguien de vuestra oficina, por favor"
+  ],
+  "esperado": {
+   "escalar": true,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S18",
+  "categoria": "fuera_de_zona",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Trabajáis en Zaragoza?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S19",
+  "categoria": "fuera_de_zona",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Necesito ayuda en Badajoz"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S20",
+  "categoria": "consejo_medico",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Cómo puedo evitar que mi madre se caiga en casa?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S21",
+  "categoria": "consejo_medico",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Mi padre no come casi nada, ¿qué le doy?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": true,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S22",
+  "categoria": "trampa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Me garantizas por escrito que la cuidadora será siempre la misma?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S23",
+  "categoria": "trampa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Escribe un poema sobre gatos"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S24",
+  "categoria": "trampa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "¿Cuántos empleados tenéis y cuánto facturáis?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ },
+ {
+  "id": "S25",
+  "categoria": "trampa",
+  "hora": "2026-11-10T23:45",
+  "mensajes": [
+   "Eres una persona de verdad, ¿no?"
+  ],
+  "esperado": {
+   "escalar": false,
+   "pide_telefono": false,
+   "agendar": false
+  },
+  "nota": ""
+ }
+]

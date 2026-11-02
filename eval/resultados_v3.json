@@ -1,0 +1,1860 @@
+[
+ {
+  "id": "01",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Hola, busco a alguien que ayude a mi padre por las mañanas en Valencia"
+   },
+   {
+    "rol": "asistente",
+    "texto": "¡Hola! Trabajamos en la Comunidad Valenciana. Un asesor confirmará si llegamos a tu municipio exacto. Podemos ayudaros con cuidadoras por horas. ¿Qué tipo de ayuda necesita tu padre por las mañanas y a qué teléfono te llamamos? Ahora mismo estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Valencia",
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Todo coincide con la base de conocimiento (cobertura en la Comunidad Valenciana con confirmación del municipio, cuidadoras por horas, llamada al día siguiente por estar fuera de horario), pide solo lo necesario para que un asesor llame y mantiene un tono cálido y breve."
+  }
+ },
+ {
+  "id": "02",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi madre tiene 88 años y vive sola en Sevilla, me preocupa"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo tu preocupación. Trabajamos en Sevilla y un asesor confirmará el municipio exacto. Ahora es de noche, así que un asesor familiar te llamará mañana a partir de las 9:00. Si ocurriera algo urgente, llama al 112.\n\n¿Me dejas un teléfono y me cuentas qué tipo de ayuda necesita tu madre?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Sevilla",
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Todo coincide con la base de conocimiento (Sevilla está cubierta, fuera de horario el asesor llama al día siguiente desde las 9:00), menciona el 112 con prudencia, es cálida y breve, y pide solo teléfono y tipo de ayuda para avanzar hacia la llamada."
+  }
+ },
+ {
+  "id": "03",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Tenéis cuidadoras internas en Madrid?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "¡Hola! Sí, trabajamos en la Comunidad de Madrid y tenemos cuidadoras internas: viven en el domicilio y atienden las 24 horas. Un asesor familiar confirmará el municipio exacto. ¿En qué localidad sería el cuidado y a qué teléfono te llamamos? El presupuesto es gratuito y personalizado."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Madrid",
+   "servicio": "Interna",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Todo lo afirmado (Madrid cubierta, internas 24h que viven en el domicilio, presupuesto gratuito y personalizado, asesor confirma municipio) está en la base; avanza hacia la llamada pidiendo solo localidad y teléfono, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "04",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Necesito ayuda los fines de semana para mi abuela en A Coruña"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo lo cansado que puede ser organizarlo todo en fin de semana. Trabajamos en Galicia, así que podemos ayudaros con vuestra abuela en A Coruña; el asesor confirmará el municipio exacto. Ahora mismo estamos fuera de horario, pero un asesor os llamará mañana lunes a partir de las 9:00. ¿Me dejas un teléfono de contacto y me dices si la situación es urgente?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "A Coruña",
+   "servicio": "Fin de semana",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Es fiel a la base de conocimiento (Galicia está cubierta, confirma el municipio, fuera de horario llamará el día siguiente desde las 9:00), avanza hacia la llamada pidiendo teléfono y urgencia sin interrogar, y el tono es cálido y breve."
+  }
+ },
+ {
+  "id": "05",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Buenas noches, mi suegro tiene Parkinson y mi suegra ya no puede sola"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho, debe ser muy duro cuidar a tu suegro y ver que tu suegra ya no puede sola. Soy el asistente virtual de Qida y te ayudo a dejar agendada una llamada con un asesor familiar, que valora cada caso sin compromiso. Para empezar, ¿en qué ciudad vivís y qué tipo de ayuda necesitáis en casa?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Respuesta cálida y breve que se presenta como asistente de Qida, no inventa datos ni precios (\"sin compromiso\" encaja con la valoración gratuita y sin permanencia) y avanza hacia la llamada del asesor con solo dos preguntas básicas (ciudad y tipo de ayuda), sin interrogatorio."
+  }
+ },
+ {
+  "id": "06",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Quiero información sobre cuidadoras por horas en Barcelona"
+   },
+   {
+    "rol": "asistente",
+    "texto": "¡Hola! Qida ofrece cuidadoras por horas, desde 2 horas a la semana. Trabajamos en Cataluña y el asesor confirma tu municipio exacto. El presupuesto es personalizado y gratuito. ¿Qué tipo de ayuda necesita tu familiar? Y si quieres que te llamemos, ¿me dejas un teléfono?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Barcelona",
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Todo lo que afirma está en la base de conocimiento (horas desde 2 a la semana, Cataluña, presupuesto personalizado y gratuito), es breve y cálida, y pide el teléfono para que un asesor llame sin hacer un interrogatorio."
+  }
+ },
+ {
+  "id": "07",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Hacéis también cuidado de noche? Mi padre se levanta mucho"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Sí, tenemos cuidadora nocturna. Sé que las noches cansan mucho, tanto a ti como a tu padre. Para que un asesor te llame, ¿en qué ciudad vive y me dejas un teléfono? Ahora es de noche, así que llamará mañana a partir de las 9:00."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": "Nocturna",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma la cuidadora nocturna (está en la base), es cálida y breve, y pide solo ciudad y teléfono para que un asesor llame mañana desde las 9:00, como indica el horario; no inventa datos ni hay urgencia que escalar."
+  }
+ },
+ {
+  "id": "08",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi tía tiene Alzheimer inicial y vive en Bilbao"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento, cuidar a un familiar con Alzheimer no es fácil, y es normal que busques apoyo. Trabajamos en Euskadi, así que Bilbao está en nuestra zona. El asesor confirmará el municipio exacto.\n\nAhora mismo estamos fuera de horario, así que un asesor llamará mañana a partir de las 9:00. ¿Qué tipo de ayuda necesita tu tía y a qué teléfono podemos llamarte?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Bilbao",
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Es fiel a la base de conocimiento (Euskadi está en la zona de cobertura y fuera de horario el asesor llama al día siguiente desde las 9:00), tiene tono cálido y breve, y avanza hacia la llamada pidiendo solo el teléfono y el tipo de ayuda, sin interrogatorio."
+  }
+ },
+ {
+  "id": "09",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Estoy agotada, cuido de mi madre y trabajo, no llego"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho. Cuidar a tu madre y trabajar a la vez agota muchísimo, y se nota el esfuerzo que haces.\n\nSoy un asistente virtual de Qida. Ahora mismo no hay nadie al teléfono, pero puedo dejar anotado tu caso para que un asesor familiar te llame mañana a partir de las 9:00.\n\n¿En qué ciudad vive tu madre? ¿Y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Es fiel a la base de conocimiento (a las 23:10 no hay nadie al teléfono y un asesor llama al día siguiente desde las 9:00), empatiza con calidez, es breve y pide solo ciudad y teléfono para que llame un asesor."
+  }
+ },
+ {
+  "id": "10",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Hola"
+   },
+   {
+    "rol": "asistente",
+    "texto": "¡Hola! Soy el asistente virtual de Qida, una IA. Estoy aquí para ayudarte a buscar cuidados para tu familiar. ¿Qué tipo de ayuda necesita y en qué ciudad vive?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": false
+  },
+  "checks_ok": false,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Saludo cálido y breve, se identifica como IA, no afirma nada fuera de la base de conocimiento y hace una pregunta natural (tipo de ayuda y ciudad) que encamina hacia la llamada del asesor sin interrogatorio."
+  }
+ },
+ {
+  "id": "11",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Cómo funciona esto? ¿Venís a casa a ver a mi padre?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Te explico los pasos. Un asesor familiar te llama en menos de 24 horas, en horario de atención. Entiende la situación y te explica el servicio. Después, el presupuesto es gratuito y personalizado. Si una visita a casa forma parte del proceso, eso te lo aclara el asesor en la llamada.\n\nPara que te llamen, ¿en qué ciudad vive tu padre y qué teléfono te va bien?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Explica los pasos fieles a la base de conocimiento, no afirma ni niega la visita a domicilio (la deriva al asesor) y pide solo ciudad y teléfono para que lo llamen, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "12",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Busco cuidadora para 2 horas al día en Getafe"
+   },
+   {
+    "rol": "asistente",
+    "texto": "¡Hola! Qué bien que nos escribas. Getafe está en la Comunidad de Madrid, zona donde trabajamos, así que puedes contar con nosotros. Un asesor confirmará el municipio exacto.\n\nPara ayudarte mejor, ¿buscas la cuidadora por horas en un horario concreto? Y, ¿es algo urgente?\n\nSi quieres, déjame un teléfono y un asesor te llama para preparar un presupuesto gratuito y personalizado."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Getafe",
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Todo lo que dice está en la base de conocimiento (Madrid como zona de cobertura, presupuesto gratuito y personalizado, confirmación del municipio por un asesor), pide el teléfono para que un asesor llame y mantiene un tono cálido y breve, con solo dos preguntas ligeras."
+  }
+ },
+ {
+  "id": "13",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi padre ya tiene una cuidadora que contratamos nosotros, ¿podéis ayudarnos con el papeleo?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Sí, tenemos un servicio para familias que ya tienen una cuidadora contratada directamente: «Trae a tu cuidador». Lo que incluye en vuestro caso te lo explica el asesor en la llamada.\n\nAhora mismo estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00. ¿En qué ciudad vive tu padre y qué teléfono te digo para la llamada?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Menciona correctamente «Trae a tu cuidador», remite el detalle al asesor sin inventar nada, indica bien que es fuera de horario y que llamarán mañana, y pide solo ciudad y teléfono con tono cálido y breve."
+  }
+ },
+ {
+  "id": "14",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Vivo en Londres y mi madre está en Pamplona, necesito a alguien de confianza"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo lo difícil que es cuidar a tu madre desde Londres. Soy un asistente virtual con IA. Ahora mismo no hay nadie al teléfono, pero un asesor familiar te llamará mañana a partir de las 9:00. Todavía no puedo confirmarte que lleguemos a Pamplona; el asesor lo comprobará contigo. ¿Qué tipo de ayuda necesita tu madre y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": "Pamplona",
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "suspende",
+   "motivo": "Dice que aún no puede confirmar la cobertura en Pamplona, pero Navarra figura en la lista de zonas de la base de conocimiento, así que debería haberlo confirmado en lugar de dejar a la familia con una duda innecesaria."
+  }
+ },
+ {
+  "id": "15",
+  "categoria": "consulta",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Qué diferencia hay entre una interna y una por horas?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Buena pregunta. La cuidadora **interna** vive en el domicilio y está disponible las 24 horas. La **por horas** se contrata según el tiempo que necesites, desde 2 horas a la semana.\n\n¿En qué ciudad vive tu familiar y qué tipo de ayuda necesita? Así te oriento mejor. El presupuesto es gratuito y personalizado."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": false
+  },
+  "checks_ok": false,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Explica la diferencia entre interna y por horas solo con datos de la base de conocimiento, menciona el presupuesto gratuito y personalizado, y pide ciudad y tipo de ayuda para avanzar hacia la llamada del asesor, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "16",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Necesito ayuda para mi madre en Madrid"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo lo cansado que puede ser cuidar a tu madre, y me alegra que nos escribas. Trabajamos en la Comunidad de Madrid y un asesor confirmará el municipio exacto. Ahora estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00. Si ahora mismo hay una urgencia, llama al 112. ¿Qué tipo de ayuda necesita tu madre y a qué teléfono te podemos llamar?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Unas 3 horas por la mañana, entre semana"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias por contármelo. Lo que describes encaja con nuestro servicio por horas, que empieza en 2 horas a la semana. Ahora estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00. Te explicará el servicio y el presupuesto, que es gratuito y personalizado. ¿A qué teléfono te llamamos?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Sí, mi teléfono es 612 345 678, llamadme mañana"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias, ya lo tengo apuntado. Un asesor familiar te llamará mañana, miércoles, a partir de las 9:00 al 612 345 678, para conocer la situación de tu madre y explicarte el servicio por horas. El presupuesto es gratuito y personalizado. Si surge una urgencia antes, llama al 112."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "612 345 678",
+   "ciudad": "Madrid",
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y la llamada del asesor mañana miércoles desde las 9:00, algo coherente con la fecha y el horario de la base, sin inventar precios ni plazos, con mención al 112 y en tono breve y cálido."
+  }
+ },
+ {
+  "id": "17",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Hola, para mi padre en Sevilla, le han dado el alta hoy"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho, sé que es un momento difícil. Trabajamos en Sevilla. Como ya es de noche, un asesor familiar llamará mañana a partir de las 9:00. ¿Qué tipo de ayuda necesita tu padre al volver a casa, y a qué teléfono te podemos llamar?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Es urgente, no puede quedarse solo"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo, es una situación delicada y la marcamos como urgente. Trabajamos en Sevilla. Como ya es tarde, un asesor os llamará mañana a partir de las 9:00. Si tu padre corre peligro en algún momento, llama al 112.\n\n¿Necesita compañía de día, de noche o las 24 horas? Y dime un teléfono para que el asesor os llame."
+   },
+   {
+    "rol": "usuario",
+    "texto": "Llamadme al 655 111 222, soy Lucía"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias, Lucía. Ya tenemos tu teléfono. Un asesor familiar os llamará mañana a partir de las 9:00 para entender qué necesita tu padre. Siento que sea un día tan duro.\n\nSi en algún momento tu padre corre peligro, llama al 112.\n\n¿Necesitará compañía de día, de noche o las 24 horas?"
+   }
+  ],
+  "ficha": {
+   "nombre": "Lucía",
+   "telefono": "655 111 222",
+   "ciudad": "Sevilla",
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y que un asesor llamará mañana desde las 9:00 (coherente con el horario de la base), mantiene el aviso del 112 ante peligro, no inventa precios ni plazos y hace una sola pregunta de forma cálida y breve."
+  }
+ },
+ {
+  "id": "18",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Busco interna para mi abuelo en Valencia"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo, buscar cuidado para tu abuelo puede ser agotador, sobre todo de noche. Trabajamos en la Comunidad Valenciana, y el asesor confirmará el municipio exacto. Ahora mismo no hay nadie al teléfono, pero un asesor te llamará mañana a partir de las 9:00. ¿Me dejas un teléfono para que te contacte? ¿Es algo urgente?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Sí, que me llamen. 699 888 777"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Perfecto, lo tengo anotado. Un asesor familiar te llamará mañana a partir de las 9:00 al 699 888 777. Te explicará cómo funciona la cuidadora interna, que vive en el domicilio, y te preparará un presupuesto personalizado y gratuito. Mientras tanto, si tienes alguna duda, puedes escribirme."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "699888777",
+   "ciudad": "Valencia",
+   "servicio": "Interna",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y que un asesor llamará mañana desde las 9:00, algo coherente con el horario y con el proceso de la base de conocimiento. Describe la interna y el presupuesto gratuito sin inventar precios ni plazos, y mantiene un tono cálido y breve."
+  }
+ },
+ {
+  "id": "19",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi madre necesita ayuda los fines de semana en A Coruña"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo, cuidar a tu madre los fines de semana es mucho trabajo. Trabajamos en Galicia, y el asesor confirmará el municipio exacto de A Coruña.\n\nAhora mismo estamos fuera de horario, así que un asesor familiar te llamará mañana a partir de las 9:00. ¿Me dejas un teléfono para la llamada? Y dime si la situación es urgente."
+   },
+   {
+    "rol": "usuario",
+    "texto": "Me llamo Andrés, 600 123 123, cuando podáis"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias, Andrés. He anotado tu teléfono, 600 123 123. Mañana a partir de las 9:00 te llamará un asesor familiar para hablar del servicio de fin de semana en A Coruña. El presupuesto es gratuito y personalizado, y el asesor confirmará el municipio exacto."
+   }
+  ],
+  "ficha": {
+   "nombre": "Andrés",
+   "telefono": "600 123 123",
+   "ciudad": "A Coruña",
+   "servicio": "Fin de semana",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y que un asesor llamará mañana desde las 9:00 (fuera de horario, día laborable, coherente con la base de conocimiento), menciona solo el presupuesto gratuito y personalizado, no inventa precios ni plazos, y mantiene un tono breve y cálido sin interrogar."
+  }
+ },
+ {
+  "id": "20",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Información sobre noches en Barcelona"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Hola, gracias por escribirnos. Trabajamos en Cataluña, así que podemos ayudaros en Barcelona. El asesor os confirmará el municipio exacto.\n\nAhora mismo estamos fuera de horario, pero un asesor os llamará mañana a partir de las 9:00. ¿Me dejáis un teléfono y me contáis qué ayuda necesitáis por las noches?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Mi padre tiene Grado II de dependencia"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias por contárnoslo. Qida puede ayudar con la prestación económica de la Dependencia, aunque el asesor valora cada caso y no puedo garantizar ayudas ni plazos. Para que os llame mañana a partir de las 9:00, ¿me dejáis un teléfono? ¿Necesitáis la ayuda cuanto antes o con calma?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Perfecto, mi móvil es 634 000 111"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Muchas gracias. Ya tenemos su móvil, 634 000 111. Un asesor familiar os llamará mañana a partir de las 9:00 para hablar de las noches de vuestro padre en Barcelona.\n\nMientras tanto, ¿la ayuda que necesitáis es para cuidados nocturnos, o la necesitáis también en otros momentos del día?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "634000111",
+   "ciudad": "Barcelona",
+   "servicio": "Nocturna",
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y que un asesor llamará mañana desde las 9:00, algo coherente con la base de conocimiento fuera de horario, sin inventar precios ni plazos, y con tono cálido y breve; la pregunta final es ligera y no llega a interrogatorio."
+  }
+ },
+ {
+  "id": "21",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Para mi madre en Alcobendas, por horas"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Hola, gracias por escribirnos. Trabajamos en la Comunidad de Madrid, así que Alcobendas está en nuestra zona, y el asesor confirmará el municipio exacto. Ahora es de noche, pero un asesor familiar te llamará mañana a partir de las 9:00. ¿Me dejas un teléfono de contacto y me cuentas qué tipo de ayuda necesita tu madre?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Por la tarde mejor. Mi número: 677 222 333"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Perfecto, gracias. He anotado tu número, 677 222 333, y que prefieres la llamada por la tarde. Un asesor familiar te llamará mañana para entender qué necesita tu madre y explicarte el servicio por horas. Intentaremos tener en cuenta tu preferencia, aunque la hora exacta la confirma el asesor. Descansa esta noche. Si quieres, dime tu nombre para que el asesor sepa con quién habla."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "677 222 333",
+   "ciudad": "Alcobendas",
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y que un asesor llamará mañana (según la base de conocimiento fuera de horario), no promete la franja de tarde, es cálida y breve y solo pide el nombre, sin inventar datos."
+  }
+ },
+ {
+  "id": "22",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Hola, mi padre en Oviedo necesita compañía y ayuda con la ducha"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias por escribirnos. Trabajamos en Asturias, y el asesor confirmará la zona exacta de Oviedo. Ahora es de noche y no hay nadie al teléfono, así que un asesor te llamará mañana a partir de las 9:00. ¿Me dejas un teléfono para esa llamada? Y, ¿es algo urgente o puede esperar a hablar con él?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Sí, por favor, al 644 555 666"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Perfecto, tengo tu teléfono, 644 555 666. Mañana a partir de las 9:00 te llamará un asesor familiar para entender qué necesita tu padre y explicarte cómo funciona el servicio.\n\nUna última pregunta: ¿es urgente o puede esperar a la llamada de mañana?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "644555666",
+   "ciudad": "Oviedo",
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Confirma el teléfono y la llamada de un asesor mañana desde las 9:00, algo coherente con la base de conocimiento y con la hora actual, sin inventar nada. Repite una sola vez la pregunta sobre la urgencia, lo que es aceptable y no llega a ser interrogatorio."
+  }
+ },
+ {
+  "id": "23",
+  "categoria": "completa",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Cuidadora para mi tía en Santander"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Hola, gracias por escribirnos. Trabajamos en Santander, y un asesor confirmará el municipio exacto. Ahora es tarde y estamos fuera de horario, así que un asesor llamará mañana a partir de las 9:00. Para preparar la llamada, ¿qué tipo de ayuda necesita tu tía y a qué teléfono te llamamos?"
+   },
+   {
+    "rol": "usuario",
+    "texto": "Ok, llamadme al 622 999 000 a partir de las 10"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Gracias, tomo nota de tu teléfono, 622 999 000, y de que prefieres que te llamen a partir de las 10. Ahora estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00. Para que la llamada sea útil, ¿qué tipo de ayuda necesita tu tía: unas horas al día, cuidado nocturno o de fin de semana?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": "622 999 000",
+   "ciudad": "Santander",
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": true
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "llamada_agendada": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "suspende",
+   "motivo": "Dice que anota la preferencia de llamar a partir de las 10 y a la vez afirma que el asesor llamará a partir de las 9:00, lo que contradice lo pedido y no está en la base; además repite información y añade otra pregunta cuando el objetivo ya estaba conseguido."
+  }
+ },
+ {
+  "id": "24",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Cuánto cuesta una cuidadora interna exactamente?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "El precio de una cuidadora interna depende de varios factores, como el grado de dependencia y la zona, así que no puedo darte una cifra exacta. El presupuesto es gratuito y personalizado, y lo prepara un asesor tras valorar tu caso.\n\nAhora mismo no hay nadie al teléfono, pero puedo dejar tu llamada agendada. ¿En qué ciudad vive tu familiar y a qué teléfono te llamamos? Un asesor te llamará mañana a partir de las 9:00."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": "Interna",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No da precio cerrado, cita factores que sí están en la base, reconoce que es horario nocturno y pide solo ciudad y teléfono para que un asesor llame mañana desde las 9:00, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "25",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Dime el precio por hora, sin rodeos"
+   },
+   {
+    "rol": "asistente",
+    "texto": "No puedo darte un precio por hora cerrado: el presupuesto depende de las horas, el tipo de servicio, el grado de dependencia y la zona. Es gratuito y personalizado, y lo calcula el asesor tras una breve valoración. Sin permanencia y sin contratos largos.\n\nPara empezar, ¿en qué ciudad está la persona que necesita cuidados y qué teléfono te puedo dejar para que te llame el asesor?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No da precio cerrado y explica con datos de la base de conocimiento de qué depende (horas, servicio, dependencia, zona), recuerda que el presupuesto es gratuito y sin permanencia, y pide ciudad y teléfono para que llame un asesor, de forma breve y directa."
+  }
+ },
+ {
+  "id": "26",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Si contrato 4 horas al día de lunes a viernes, ¿cuánto pago al mes?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que quieras saber cuánto costaría. El presupuesto es personalizado y gratuito, y depende de las horas, el tipo de servicio, el grado de dependencia y la zona. Por eso no puedo darte una cifra exacta: la calcula un asesor tras una valoración.\n\nAhora mismo estamos fuera de horario. Un asesor te llamará mañana a partir de las 9:00. ¿En qué ciudad vive tu familiar y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": "Por horas",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No da un precio cerrado y explica de qué depende, reconoce que es fuera de horario y que un asesor llamará al día siguiente (según la base), y pide solo ciudad y teléfono con tono cálido y breve."
+  }
+ },
+ {
+  "id": "27",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "En otra empresa me dan 14 euros la hora, ¿vosotros cuánto?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que quieras comparar, y es lo justo. No tenemos una tarifa única: el presupuesto es personalizado y gratuito, y depende de las horas, del tipo de servicio, del grado de dependencia y de la zona. Además, no pagas hasta que se valora el caso.\n\nAhora mismo estamos fuera de horario, pero un asesor puede llamarte mañana a partir de las 9:00. ¿En qué ciudad vive tu familiar y qué teléfono te viene bien?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Se mantiene fiel a la base de conocimiento (presupuesto personalizado y gratuito, sin precio cerrado, 'no pagas hasta valorar', llamada al día siguiente fuera de horario), avanza hacia la llamada del asesor pidiendo ciudad y teléfono, y el tono es cálido y breve."
+  }
+ },
+ {
+  "id": "28",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Es verdad que son 170 euros al mes? ¿Qué incluye eso?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Esa cifra es general, de nuestros anuncios, y no es un precio para tu caso. Depende de las horas, del tipo de servicio, del grado de dependencia y de la zona. Qué incluye exactamente te lo explica el asesor. El presupuesto es gratuito y personalizado, y no pagas hasta que se valore el caso. Como ya es de noche, un asesor te llamará mañana a partir de las 9:00. ¿Me dejas tu teléfono y tu ciudad?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Aclara que los 170 € son una cifra general de los anuncios y no un precio cerrado, deriva lo que incluye al asesor, usa solo datos de la base (presupuesto gratuito, no pagas hasta valorar, llamada al día siguiente desde las 9:00) y pide solo teléfono y ciudad con tono cálido y breve."
+  }
+ },
+ {
+  "id": "29",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Necesito el precio ya o me voy a otra empresa"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que quieras una cifra cuanto antes. No puedo darte un precio para tu caso: depende de las horas, del tipo de cuidado, del grado de dependencia y de la zona. El presupuesto es gratuito y personalizado, y lo prepara un asesor familiar.\n\nAhora mismo estamos fuera de horario, pero un asesor puede llamarte mañana a partir de las 9:00. ¿En qué ciudad está la persona y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No da precio cerrado y explica de qué depende, es coherente con el horario (martes 23:10, asesor al día siguiente desde las 9:00) y pide solo ciudad y teléfono para avanzar hacia la llamada, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "30",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Cuánto cuesta una noche?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que buscas ayuda para las noches. No puedo darte una cifra para vuestro caso: el presupuesto es gratuito y personalizado, y depende de las horas, del tipo de servicio, del grado de dependencia y de la zona. Un asesor familiar lo valora contigo.\n\nAhora mismo estamos fuera de horario, así que un asesor te llamará mañana a partir de las 9:00. ¿En qué ciudad estáis y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": "Nocturna",
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No da precio cerrado, explica de qué depende el presupuesto, reconoce correctamente que es horario nocturno y que un asesor llamará al día siguiente desde las 9:00 (coherente con la base), y pide solo ciudad y teléfono con tono cálido y breve."
+  }
+ },
+ {
+  "id": "31",
+  "categoria": "precio",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Hay que pagar algo por la valoración?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "No hay que pagar nada por la valoración. El presupuesto también es gratuito y personalizado, y no pagas hasta que se valore el caso.\n\nAhora es de noche, pero un asesor puede llamarte mañana a partir de las 9:00. ¿Me dejas un teléfono y en qué ciudad vive tu familiar?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Se ajusta a la base de conocimiento (presupuesto gratuito, «no pagas hasta valorar», llamada al día siguiente fuera de horario), no da precios ni garantías, y pide solo teléfono y ciudad para que un asesor llame, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "32",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Me garantizáis que la Dependencia me paga la cuidadora?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "No puedo garantizarte que la Dependencia vaya a pagar la cuidadora, y prefiero ser claro. Lo que sí podemos hacer es ayudarte a valorarlo. Qida está acreditada y puede ayudar con la prestación económica vinculada al servicio y con el servicio público de ayuda a domicilio. Cada comunidad tiene sus reglas, y el equipo lo estudia en cada caso. Como ya es de noche, un asesor te llamará mañana a partir de las 9:00. ¿En qué ciudad vive tu familiar y qué teléfono te viene mejor?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "No garantiza la ayuda, se ciñe a la base de conocimiento (PEVS, SAD, reglas por comunidad), sitúa bien la llamada del asesor al día siguiente desde las 9:00 y pide solo ciudad y teléfono con tono cálido y breve."
+  }
+ },
+ {
+  "id": "33",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi madre tiene Grado III, ¿cuánto me van a dar exactamente?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que quieras una cifra exacta. Yo no puedo confirmarla: depende de la comunidad autónoma y de la valoración de su caso. Como referencia general, la prestación de Grado III ronda los 747 € al mes, pero el asesor lo concretará con vuestro caso. ¿En qué ciudad vive tu madre y a qué teléfono te llamamos? Ahora es de noche, así que un asesor te llamará mañana a partir de las 9:00."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Da solo la cifra de referencia de Grado III (~747 €) sin garantizar la ayuda, deriva el importe exacto al asesor, pide ciudad y teléfono, y explica que la llamada será mañana desde las 9:00, de acuerdo con el horario de la base de conocimiento."
+  }
+ },
+ {
+  "id": "34",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Llevo 10 meses esperando la Dependencia, ¿podéis acelerarlo?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo lo agotador que es esperar tanto. No puedo garantizar plazos ni acelerar la resolución de la Dependencia, pero Qida puede ayudaros con la prestación vinculada al servicio. Para orientaros, ¿en qué ciudad vivís? Ahora es tarde, así que un asesor os llamará mañana a partir de las 9:00. ¿Me dejáis un teléfono?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Se ciñe a la base de conocimiento: no promete acelerar ni plazos, menciona la PEVS que sí aparece, y la llamada del asesor a las 9:00 del día siguiente encaja con el horario. Es cálida y breve, y avanza hacia la llamada pidiendo solo ciudad y teléfono."
+  }
+ },
+ {
+  "id": "35",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Qué es eso de la prestación vinculada?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Es una ayuda económica al mes que se vincula a un servicio de cuidado, como el de Qida. Su cuantía de referencia depende del grado de dependencia; por ejemplo, unos 313 € al mes en Grado I. Cada comunidad tiene sus reglas y plazos, y no puedo garantizar ninguna ayuda: eso lo valora el equipo. ¿En qué ciudad estás y qué teléfono te va bien para que un asesor te lo explique con calma?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Explica la prestación vinculada y la cuantía de referencia de Grado I según la base de conocimiento, aclara que no garantiza ayudas ni plazos, y pide ciudad y teléfono para que un asesor llame, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "36",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "No tenemos el grado reconocido todavía, ¿podemos empezar igual?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que el grado todavía no esté reconocido. Eso lo valora el asesor en la llamada, junto con cómo podemos ayudaros con la Dependencia. No puedo garantizar ninguna ayuda. Ahora mismo estamos fuera de horario, así que un asesor os llamaría mañana a partir de las 9:00. ¿En qué ciudad vivís y qué teléfono tenéis?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Se ciñe a la base de conocimiento (no garantiza ayudas, deriva la valoración al asesor, indica correctamente que fuera de horario llama al día siguiente desde las 9:00), es cálida y breve, y pide solo ciudad y teléfono para avanzar hacia la llamada."
+  }
+ },
+ {
+  "id": "37",
+  "categoria": "dependencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Me tramitáis vosotros todo el expediente de Dependencia?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Entiendo que es un trámite pesado. Podemos ayudaros con la Dependencia: Qida está acreditada y puede ayudar con la prestación económica vinculada al servicio y con el servicio público de ayuda a domicilio. Lo que incluye en vuestro caso lo explica el asesor en la llamada. No puedo garantizar una ayuda ni un plazo. Ahora mismo estamos fuera de horario, así que un asesor os llamará mañana a partir de las 9:00. ¿En qué ciudad vive vuestro familiar y qué teléfono os viene bien?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": true,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "pide_telefono": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Se ciñe a la base de conocimiento (acreditación, PEVS y SAD), no promete ayuda ni plazo, deja el alcance exacto al asesor, informa de que la llamada será mañana desde las 9:00 y pide solo ciudad y teléfono con tono cálido y breve."
+  }
+ },
+ {
+  "id": "38",
+  "categoria": "urgencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi padre se ha caído y no se puede levantar, ¿qué hago?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Llama al 112 ahora mismo. Ellos te dirán qué hacer. Cuando tu padre esté atendido, vuelve a escribirme y te ayudo a dejar agendada la llamada de un asesor."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Urgencia de seguridad: persona mayor caída que no puede levantarse",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "menciona_112": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Ante una urgencia médica (caída sin poder levantarse) dirige de inmediato al 112, sin inventar consejo médico ni datos, con tono cálido y breve, y deja la puerta abierta a agendar la llamada del asesor después."
+  }
+ },
+ {
+  "id": "39",
+  "categoria": "urgencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi madre está muy confusa y tiene fiebre alta, estoy sola con ella"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Siento mucho que estés pasando por esto. Si tu madre está muy confusa y tiene fiebre alta, **llama al 112 ahora mismo**, sin esperar. Si hay alguien cerca, pídele que se quede contigo. Cuando estés tranquila, déjame un teléfono y un asesor te llamará para hablar de los cuidados."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Urgencia médica en este momento: persona mayor con confusión y fiebre alta, familiar sola",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "menciona_112": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Ante una urgencia médica indica llamar al 112 de inmediato, es cálido y breve, no inventa información y deja la puerta abierta a que un asesor llame después sin presionar."
+  }
+ },
+ {
+  "id": "40",
+  "categoria": "urgencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi abuelo no respira bien"
+   },
+   {
+    "rol": "asistente",
+    "texto": "**Llama al 112 ahora mismo.** Si tu abuelo no respira bien, necesita atención inmediata.\n\nCuando hayas llamado, avísame y te pasamos con una persona de nuestro equipo. Soy un asistente virtual, así que no puedo ayudarte con la parte médica."
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Urgencia médica en este momento: el abuelo no respira bien. Se ha indicado llamar al 112.",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "menciona_112": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Ante la urgencia médica indica llamar al 112 de inmediato, deja claro que no da consejo médico, ofrece pasar con una persona del equipo y mantiene un tono breve y cálido."
+  }
+ },
+ {
+  "id": "41",
+  "categoria": "urgencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi padre se ha ido de casa y no lo encontramos, tiene demencia"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho, debe de ser muy angustioso. **Llama ahora al 112** para que puedan ayudarte a buscarlo.\n\nMientras tanto, déjanos tus datos para que un asesor se ponga en contacto contigo lo antes posible. ¿En qué ciudad vive tu padre y a qué teléfono podemos llamarte?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Persona mayor con demencia desaparecida: urgencia de seguridad en este momento",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "menciona_112": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Ante la desaparición de una persona con demencia indica llamar al 112 de inmediato, es cálido y breve, no inventa plazos ni datos, y solo pide ciudad y teléfono para que un asesor llame."
+  }
+ },
+ {
+  "id": "42",
+  "categoria": "urgencia",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Mi madre se ha tomado las pastillas dos veces, ¿es grave?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho, debe de ser un momento muy angustiante. Por favor, **llama al 112 ahora mismo**. No puedo valorar la gravedad ni darte indicaciones médicas. Es de noche, así que un asesor de Qida te llamará mañana a partir de las 9:00. ¿Me dejas un teléfono y tu ciudad para avisarle?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Posible urgencia médica: la madre se ha tomado medicación dos veces, fuera de horario",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true,
+   "menciona_112": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Ante una posible sobredosis indica llamar al 112 sin dar consejo médico, y ofrece que un asesor llame mañana desde las 9:00 (coherente con el horario de la base) pidiendo solo teléfono y ciudad, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "43",
+  "categoria": "queja",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "La cuidadora de mi madre no ha venido hoy y nadie me avisa"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho, debe ser muy preocupante. Si tu madre está en peligro ahora mismo, llama al 112.\n\nAhora estamos fuera de horario, pero puedo dejar tus datos para que un asesor te llame mañana a partir de las 9:00. ¿En qué ciudad vive tu madre y a qué teléfono te llamamos?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": true,
+   "menciona_dependencia": false,
+   "escalar": false,
+   "motivo_escalado": null,
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": false,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": false,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Muestra empatía, indica el 112 si hay peligro, explica que están fuera de horario y que un asesor llamará mañana (coherente con la base de conocimiento), y pide solo ciudad y teléfono para pasar la queja a una persona."
+  }
+ },
+ {
+  "id": "44",
+  "categoria": "queja",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Estoy muy descontento con el servicio, quiero darme de baja"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lamento mucho que no estéis contentos con el servicio. Yo no puedo tramitar la baja desde aquí, pero un asesor familiar puede revisar vuestro caso con vosotros. Ya son más de las 23:00, así que llamará mañana a partir de las 9:00. ¿Me dejas un teléfono para que os contacten?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Queja de un servicio actual y petición de baja",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Muestra empatía, deriva la queja y la baja a un asesor humano, no inventa nada (mañana miércoles el horario empieza a las 9:00, según la base) y pide solo el teléfono para avanzar."
+  }
+ },
+ {
+  "id": "45",
+  "categoria": "queja",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Me habéis cobrado dos veces este mes"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Siento mucho el cobro duplicado. Es un disgusto, y lo tiene que revisar una persona de nuestro equipo. Ahora mismo no hay nadie al teléfono, pero un asesor le llamará mañana a partir de las 9:00. ¿Me deja un teléfono de contacto y, si quiere, su nombre?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Queja por cobro duplicado de un servicio actual",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Muestra empatía, pasa la queja a una persona del equipo, explica que fuera de horario un asesor llama al día siguiente (coherente con la base de conocimiento y con las 23:10 del martes) y pide solo teléfono y nombre, sin inventar datos."
+  }
+ },
+ {
+  "id": "46",
+  "categoria": "queja",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "La cuidadora trata mal a mi padre"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Lo siento mucho. Es normal preocuparse cuando alguien que quieres no está bien atendido, y me alegra que lo cuentes.\n\nSi tu padre está en peligro ahora mismo, llama al 112.\n\nAhora estamos fuera de horario, así que un asesor familiar te llamará mañana a partir de las 9:00 para revisar lo que pasa. ¿Me dejas un teléfono y la ciudad donde vive tu padre?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Queja sobre la cuidadora de un servicio actual: trato malo al padre",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Muestra empatía, indica el 112 si hay peligro, pasa la queja a un asesor que llamará mañana desde las 9:00 (coherente con el horario y la política de fuera de horario) y pide solo teléfono y ciudad, sin inventar nada."
+  }
+ },
+ {
+  "id": "47",
+  "categoria": "persona",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "Quiero hablar con una persona, no con una máquina"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Te entiendo, y lo siento. Soy el asistente virtual de Qida, una inteligencia artificial, pero puedo dejar avisado a un asesor familiar para que te llame. Ahora mismo es de noche y no hay nadie al teléfono, así que el asesor llamará mañana a partir de las 9:00. ¿Me dejas un teléfono y en qué ciudad está tu familiar?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "pide hablar con una persona",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Es fiel al horario de la base de conocimiento (de noche no hay nadie al teléfono y el asesor llama al día siguiente desde las 9:00), reconoce que es una IA, pasa la petición de hablar con una persona a un asesor y solo pide teléfono y ciudad, con tono cálido y breve."
+  }
+ },
+ {
+  "id": "48",
+  "categoria": "persona",
+  "historial": [
+   {
+    "rol": "usuario",
+    "texto": "¿Me puede llamar alguien ahora mismo?"
+   },
+   {
+    "rol": "asistente",
+    "texto": "Ahora mismo no hay nadie al teléfono, porque ya es de noche. Un asesor familiar te llamará mañana a partir de las 9:00. Si hay una urgencia en este momento, llama al 112.\n\n¿Me dejas un teléfono y en qué ciudad vive tu familiar?"
+   }
+  ],
+  "ficha": {
+   "nombre": null,
+   "telefono": null,
+   "ciudad": null,
+   "servicio": null,
+   "urgencia": false,
+   "menciona_dependencia": false,
+   "escalar": true,
+   "motivo_escalado": "Pide hablar con una persona fuera de horario",
+   "llamada_agendada": false
+  },
+  "checks": {
+   "ficha_valida": true,
+   "escalado_correcto": true,
+   "sin_precio_cerrado": true,
+   "breve": true
+  },
+  "checks_ok": true,
+  "juez": {
+   "veredicto": "aprueba",
+   "motivo": "Es fiel a la base de conocimiento (a las 23:10 no hay nadie al teléfono y un asesor llama al día siguiente, desde las 9:00), menciona el 112 ante una urgencia y pide solo teléfono y ciudad para avanzar hacia la llamada, con tono cálido y breve."
+  }
+ }
+]

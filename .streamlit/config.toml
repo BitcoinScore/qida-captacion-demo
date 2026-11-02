@@ -1,0 +1,8 @@
+# Identidad de Qida (qida.es, 02-11-2026): verde #004039, apoyo #338581/#006661, fondos #EFF5F5/#CCE0DF,
+# acento #ea6d43, texto #333333. Tipografía de la marca: Aeonik (de pago) -> DM Sans como alternativa libre.
+[theme]
+base = "light"
+primaryColor = "#004039"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EFF5F5"
+textColor = "#333333"

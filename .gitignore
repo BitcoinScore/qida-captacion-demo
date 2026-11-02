@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+datos/crm.db
+app/assets/
+eval/etiquetas_humanas.json
+.pytest_cache/
