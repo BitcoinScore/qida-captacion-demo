@@ -1,13 +1,16 @@
 import json
+import sqlite3
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 import comun
+import detalles
 import graficos
 from comun import es
-from motor import scoring
+from motor import leads, scoring
+from motor.contacto import limpiar_ficha
 
 ciudades = comun.selector_ciudades()
 
@@ -36,12 +39,15 @@ fila = comun.Fila()
 k1 = k2 = k3 = fila
 comun.kpi(k1, "Llamadas en menos de 1 h", f"{es(ultimo['pct_menos_1h'], 0)} %",
           f"{comun.mes_es(ultimo['mes'])} · objetivo: 50 %", ultimo["pct_menos_1h"] - previo["pct_menos_1h"],
-          alerta=ultimo["pct_menos_1h"] < 25, icono="phone_in_talk", frente="frente al mes anterior")
+          alerta=ultimo["pct_menos_1h"] < 25, icono="phone_in_talk", frente="frente al mes anterior",
+          detalle=lambda: detalles.cola_rapidas(velocidad))
 comun.kpi(k2, "Espera media hasta la primera llamada", es(ultimo["horas_media"], 1, " h"),
           "las familias de noche esperan a la mañana", ultimo["horas_media"] - previo["horas_media"],
-          mejor_si_sube=False, unidad_tendencia=" h", icono="schedule", frente="frente al mes anterior")
+          mejor_si_sube=False, unidad_tendencia=" h", icono="schedule", frente="frente al mes anterior",
+          detalle=lambda: detalles.cola_espera(velocidad))
 comun.kpi(k3, "Contratos cubiertos con el 30 % mejor puntuado", f"{es(cubiertos_30, 0)} %",
-          "frente al 30 % si se llama en orden de llegada", icono="target")
+          "frente al 30 % si se llama en orden de llegada", icono="target",
+          detalle=lambda: detalles.cola_cobertura(gan))
 fila.pintar()
 
 # ── La cola de hoy ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -61,12 +67,13 @@ cola["entró por"] = cola["canal"]
 # Las familias que dejó anoche el asistente (si se ha probado la web) entran en la misma cola
 try:
     with comun.conexion() as con:
+        leads.purgar(con)  # retención: los leads caducan a los 30 días
         chat = pd.read_sql("SELECT fecha, ficha FROM leads_web WHERE canal = 'Chat'", con)
-except Exception:
+except (sqlite3.Error, pd.errors.DatabaseError):  # aún no se ha usado la web: la tabla no existe
     chat = pd.DataFrame(columns=["fecha", "ficha"])
 filas_chat = []
 for _, f in chat.tail(3).iterrows():
-    ficha = json.loads(f["ficha"])
+    ficha = limpiar_ficha(json.loads(f["ficha"]))  # las filas viejas también: el texto viene de una familia y del modelo
     if ficha.get("ciudad") not in ciudades:
         continue
     filas_chat.append({"id": -len(filas_chat) - 1, "familia": ficha.get("nombre") or "Familia del chat",
@@ -87,25 +94,33 @@ else:
     cola["entró"] = cola["fecha_entrada"].dt.strftime("%H:%M")
     cola["urgente"] = cola["urgencia"].map({1: "Sí", 0: ""})
     cola = cola.sort_values(["urgencia", "score"], ascending=[False, False])
-    cola["llamada hecha"] = False
-    st.markdown(f"#### La cola de esta mañana · {len(cola)} familias que pidieron ayuda desde las 20:00")
-    st.data_editor(
-        cola[["llamada hecha", "urgente", "familia", "ciudad", "servicio", "entró", "espera", "score", "por qué", "entró por"]],
-        hide_index=True, width="stretch",
-        disabled=["urgente", "familia", "ciudad", "servicio", "entró", "espera", "score", "por qué", "entró por"],
+    cola = cola.reset_index(drop=True)
+    hechas = st.session_state.setdefault("cola_hechas", set())
+    cola["estado"] = cola["id"].map(lambda i: "Llamada hecha" if i in hechas else "Pendiente")
+    comun.titulo(f"La cola de esta mañana · {len(cola)} familias que pidieron ayuda desde las 20:00")
+    sel = st.dataframe(
+        cola[["estado", "urgente", "familia", "ciudad", "servicio", "entró", "espera", "score", "por qué", "entró por"]],
+        hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row",
+        key=f"cola-{st.session_state.get('cola_n', 0)}",
         column_config={
-            "llamada hecha": st.column_config.CheckboxColumn("Hecha", width="small"),
+            "estado": st.column_config.TextColumn("Estado", width="small"),
             "urgente": st.column_config.TextColumn("Urgente", width="small"),
             "score": st.column_config.ProgressColumn("Probabilidad de contratar", format="percent", min_value=0,
                                                      max_value=float(max(test["score"].max(), 0.01))),
         },
     )
-    st.caption("Nombres ficticios. Urgentes primero (alta hospitalaria o situación urgente); después, por probabilidad.")
+    comun.descarga(cola[["estado", "urgente", "familia", "ciudad", "servicio", "entró", "espera", "score", "por qué", "entró por"]]
+                   .rename(columns={"score": "probabilidad de contratar"}), "cola-de-llamadas", "Descargar la cola (CSV)")
+    if sel.selection.rows:
+        fila_sel = cola.iloc[sel.selection.rows[0]]
+        detalles.ficha_cola(fila_sel, fila_sel["por qué"])
+    st.caption("Nombres ficticios. Pulsa una fila para ver su ficha y marcar la llamada como hecha. Urgentes primero "
+               "(alta hospitalaria o situación urgente); después, por probabilidad.")
 
 # ── Por qué funciona ─────────────────────────────────────────────────────────────────────────────────────────────
 izq, der = st.columns(2)
 with izq:
-    st.markdown("#### La puntuación acierta: curva de ganancia")
+    comun.titulo("La puntuación acierta: curva de ganancia")
     st.markdown(f"Llamando primero al **30 % de la cola** mejor puntuado se cubre el **{es(cubiertos_30, 0)} % de los contratos**; "
                 f"en orden de llegada, solo el 30 %.")
     fig = go.Figure()
@@ -132,7 +147,7 @@ with izq:
     comun.grafico(fig)
     st.caption("Comprobado con agosto y septiembre de 2026, meses que el modelo no vio. Contrato = en 30 días.")
 with der:
-    st.markdown("#### Cuanto más esperan, menos contratan")
+    comun.titulo("Cuanto más esperan, menos contratan")
     comun.grafico(graficos.columnas(espera, "espera", "pct_contrata", "tiempo hasta la primera llamada",
                                       "% que contrata", resaltar="1. < 1 h"))
     st.caption("Es una asociación: las familias de noche también son distintas. Que llamar antes cause más contratos se "

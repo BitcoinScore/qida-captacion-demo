@@ -70,16 +70,27 @@ def historico(con):
            GROUP BY c.fuera_horario""")}
 
 
-with comun.conexion() as con:
-    act = metricas.kpis_periodo(con, p_desde.isoformat(), p_hasta.isoformat())
-    ant = metricas.kpis_periodo(con, a_desde.isoformat(), a_hasta.isoformat(), corte=corte_ant.isoformat())
-    en_plazo = 0 if madura else metricas.kpis_periodo(con, max(p_desde, inicio_plazo).isoformat(), p_hasta.isoformat())["familias"]
-    contactos = con.execute("SELECT COUNT(*) FROM leads WHERE date(fecha_entrada) BETWEEN ? AND ?",
-                            (p_desde.isoformat(), p_hasta.isoformat())).fetchone()[0]
-    franjas = historico(con)
-    n_meses = (LIMITE_MADURO.year - PRIMER_DATO.year) * 12 + LIMITE_MADURO.month - PRIMER_DATO.month + 1
-    km = metricas.kaplan_meier(metricas.duraciones(con)).set_index("mes")["pct_siguen"]
-    eco = metricas.economia_por_canal(con, comun.CIUDADES)
+@st.cache_data(show_spinner=False)
+def calcular(p_desde, p_hasta, a_desde, a_hasta, corte_ant, inicio_plazo, madura, version_datos):
+    """Todo lo que sale de la base para esta pantalla. En caché: pulsar una tarjeta no debe repetir las consultas ni los
+    cálculos (`version_datos` invalida la caché si se regenera la base)."""
+    with comun.conexion() as con:
+        act = metricas.kpis_periodo(con, p_desde.isoformat(), p_hasta.isoformat())
+        ant = metricas.kpis_periodo(con, a_desde.isoformat(), a_hasta.isoformat(), corte=corte_ant.isoformat())
+        en_plazo = 0 if madura else metricas.kpis_periodo(con, max(p_desde, inicio_plazo).isoformat(), p_hasta.isoformat())["familias"]
+        contactos = con.execute("SELECT COUNT(*) FROM leads WHERE date(fecha_entrada) BETWEEN ? AND ?",
+                                (p_desde.isoformat(), p_hasta.isoformat())).fetchone()[0]
+        franjas = historico(con)
+        km = metricas.kaplan_meier(metricas.duraciones(con)).set_index("mes")["pct_siguen"]
+        eco = metricas.economia_por_canal(con, comun.CIUDADES)
+    return act, ant, en_plazo, contactos, franjas, km, eco
+
+
+act, ant, en_plazo, contactos, franjas, km, eco = calcular(
+    p_desde, p_hasta, a_desde, a_hasta, corte_ant, inicio_plazo, madura, comun.DB.stat().st_mtime)
+n_meses = (LIMITE_MADURO.year - PRIMER_DATO.year) * 12 + LIMITE_MADURO.month - PRIMER_DATO.month + 1
+for _desde, _hasta in ((p_desde, p_hasta), (a_desde, a_hasta)):  # precalienta las ventanas de detalle (en caché)
+    detalles.familias(_desde, _hasta)  # ojo: una expresión suelta aquí la pintaría Streamlit en pantalla («magic»)
 familias, contactadas, valoraciones, contratos = act["familias"], act["contactadas"], act["valoraciones"], act["contratos"]
 
 
@@ -117,6 +128,8 @@ elif mes_completo:
 elif n_meses_periodo:
     titulo = (f"{eleccion.lower()}: {corta(p_desde)} – {corta(p_hasta)} · frente a los {n_meses_periodo} meses anteriores"
               if n_meses_periodo < 12 else f"último año: {corta(p_desde)} – {corta(p_hasta)} · frente al año anterior")
+else:  # periodo personalizado
+    titulo = f"{corta(p_desde)} – {corta(p_hasta)} · frente al periodo anterior de la misma duración"
 if not comparable:  # los datos empiezan en mayo de 2025: no hay periodo anterior completo
     titulo = titulo.split(" · frente")[0] + " · sin periodo anterior completo para comparar (los datos empiezan en mayo de 2025)"
 st.markdown(f"<div class='seccion'>{titulo}</div>", unsafe_allow_html=True)
@@ -182,7 +195,7 @@ st.caption("Objetivos de ejemplo. Verde: cumple su objetivo; naranja: no lo cump
 
 # ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
 rango = corta(p_desde) if duracion == 1 else f"{corta(p_desde)} – {corta(p_hasta)}"
-st.markdown(f"#### Dónde se pierden las familias · {rango}")
+comun.titulo(f"Dónde se pierden las familias · {rango}")
 if not madura:
     comun.nota(f"Las mismas {es(familias, 0)} familias de las tarjetas. {es(en_plazo, 0)} entraron hace menos de 30 días: el "
                "embudo cuenta lo que han hecho hasta hoy y aún crecerá.", "neutra")
@@ -206,7 +219,14 @@ ETAPAS = [
 ]
 # Cada etapa se puede pulsar: abre quién se queda en ella y por qué (la clave cambia tras abrir, para que no se reabra sola)
 n_clic = st.session_state.setdefault("embudo_clic", 0)
-evento = st.plotly_chart(graficos.embudo_viaje(ETAPAS), width="stretch", on_select="rerun", selection_mode="points",
+
+
+@st.cache_data(show_spinner=False)
+def embudo_en_cache(etapas):
+    return graficos.embudo_viaje(etapas)
+
+
+evento = st.plotly_chart(embudo_en_cache(ETAPAS), width="stretch", on_select="rerun", selection_mode="points",
                          key=f"embudo-{n_clic}", config={"displayModeBar": False, "scrollZoom": False})
 puntos = evento.selection.points if evento and evento.selection else []
 if puntos:
@@ -217,7 +237,7 @@ st.caption("Pulsa una etapa para ver quién se queda en ella y por qué. Cada pa
            "últimas etapas (trazo discontinuo) son estimaciones con la curva de permanencia histórica.")
 
 # ── 3. El viaje, etapa a etapa (service blueprint) ────────────────────────────────────────────────────────────
-st.markdown("#### El viaje, etapa a etapa")
+comun.titulo("El viaje, etapa a etapa")
 ETAPAS_VIAJE = [
     ("Nos descubre", es(familias, 0),
      "Busca «cuidadora para mi madre» o ve un anuncio en Instagram", "Google Ads, Meta por ciudad, blog y prescriptores",
@@ -263,32 +283,40 @@ st.markdown(
 .blueprint tr:last-child td:not(.fila) {{color:{comun.GRIS_TEXTO}; font-style:italic}}
 </style>
 <div class="blueprint-envoltorio"><table class="blueprint">
-<tr><th style="background:transparent;border:0"></th>{cabecera}</tr>{cuerpo}</table></div>
+<tr><th style="background:transparent;border:0"><span style="position:absolute;left:-9999px">Fila</span></th>{cabecera}</tr>{cuerpo}</table></div>
 """,
     unsafe_allow_html=True,
 )
 
 # ── 4. Caso de negocio y cómo se probaría ────────────────────────────────────────────────────────────────────────
-st.markdown("#### Qué valdría arreglar la noche, y cómo lo probaría")
+comun.titulo("Qué valdría arreglar la noche, y cómo lo probaría")
 st.caption("Con todo el histórico maduro (mayo de 2025 – septiembre de 2026), no con el periodo elegido: un solo mes daría "
            "una estimación con demasiado ruido.")
 noche_mes = n_noche / n_meses
 extra_mes = noche_mes * (con_dia / n_dia - con_noche / n_noche)
 # Tamaño del A/B: familias de noche por grupo para detectar la diferencia de llegada a valoración (95 %, potencia 80 %)
 d = tasa_dia - tasa_noche
-n_grupo = math.ceil((1.96 + 0.84) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
+n_grupo = math.ceil((1.959964 + 0.841621) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
 fila = comun.Fila()
 c1 = c2 = c3 = fila
 comun.kpi(c1, "Si la noche convirtiera como el día", f"+{es(extra_mes * 12, 0)}<small>familias al año</small>",
-          f"de noche contrata el {es(100 * con_noche / n_noche)} %; de día, el {es(100 * con_dia / n_dia)} %", icono="trending_up")
+          f"de noche contrata el {es(100 * con_noche / n_noche)} %; de día, el {es(100 * con_dia / n_dia)} %", icono="trending_up",
+          detalle=lambda: detalles.negocio_extra(noche_mes, con_noche / n_noche, con_dia / n_dia))
 comun.kpi(c2, "Margen que supondría", f"~{es(extra_mes * 12 * ltv_medio / 1000, 0)}<small>mil € al año</small>",
-          f"valor medio de una familia en 12 meses: {es(ltv_medio, 0, ' €')} (margen supuesto del 30 %)", icono="payments")
+          f"valor medio de una familia en 12 meses: {es(ltv_medio, 0, ' €')} (margen supuesto del 30 %)", icono="payments",
+          detalle=lambda: detalles.negocio_margen(extra_mes, ltv_medio))
 comun.kpi(c3, "Tamaño del A/B", f"{es(n_grupo, 0)}<small>familias por grupo</small>",
-          f"para ver la diferencia en llegada a la valoración ({es(100 * tasa_noche, 0)} % → {es(100 * tasa_dia, 0)} %)", icono="science")
+          f"para ver la diferencia en llegada a la valoración ({es(100 * tasa_noche, 0)} % → {es(100 * tasa_dia, 0)} %): "
+          f"unos {es(2 * n_grupo / noche_mes, 0)} meses con todas las ciudades", icono="science",
+          detalle=lambda: detalles.negocio_ab(tasa_noche, tasa_dia, noche_mes))
 fila.pintar()
-comun.nota("**Cómo lo probaría:** asistente sí/no en semanas alternas en una ciudad. Métrica principal: familias de noche "
-           "que llegan a la valoración en 30 días; de control: coste de captar una familia y permanencia a 3 meses. "
-           "Es una hipótesis: que la noche convierta peor es una asociación en los datos, no una causa probada.", "neutra")
+comun.nota("**Cómo lo probaría, en dos pasos:** (1) **¿funciona el mecanismo?** Entre las familias de noche, casi ninguna recibe "
+           "llamada en la primera hora; con el asistente debería recibirla la mayoría. Basta con unas decenas de familias por "
+           "grupo, en días. (2) **¿cambia el resultado?** Asistente sí/no por semanas alternas con **todas las ciudades** "
+           "(una sola ciudad tardaría años). Detectar la mejora completa (de noche como de día) exige miles de familias; una "
+           "mejora de 8 puntos, unos 3-4 meses. Métrica principal: llegada a la valoración en 30 días; de control: coste de "
+           "captar una familia y permanencia a 3 meses. Es una hipótesis: que la noche convierta peor es una asociación en los "
+           "datos, no una causa probada.", "neutra")
 
 with st.expander("Cómo se mide (definiciones)"):
     st.markdown(

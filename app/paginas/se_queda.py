@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import comun
+import detalles
 import graficos
 from comun import es
 from motor import metricas
@@ -21,7 +22,7 @@ comun.cabecera("Retención", f"{es(s.get(12, s.iloc[-1]), 0)} de cada 100 famili
 
 izq, der = st.columns(2)
 with izq:
-    st.markdown("#### Cuánto tiempo siguen (Kaplan-Meier)")
+    comun.titulo("Cuánto tiempo siguen (Kaplan-Meier)")
     fig = go.Figure(go.Scatter(x=km["mes"], y=km["pct_siguen"], mode="lines+markers", line_shape="hv",
                                line=dict(color=graficos.ACENTO, width=3), marker=dict(size=6),
                                hovertemplate="Mes %{x}: siguen el %{y:.1f} %<extra></extra>"))
@@ -37,7 +38,7 @@ with izq:
     st.caption("Kaplan-Meier usa a todas las familias, también las que llevan poco tiempo, sin sesgar la curva.")
 
 with der:
-    st.markdown("#### Siguen a los 3 meses, según por dónde llegaron")
+    comun.titulo("Siguen a los 3 meses, según por dónde llegaron")
     filas = []
     for canal, g in d.groupby("canal"):
         s3 = metricas.kaplan_meier(g, hasta=3).set_index("mes")["pct_siguen"].get(3)
@@ -51,7 +52,7 @@ with der:
     else:
         comun.nota("Con las ciudades elegidas aún no hay suficientes familias con tres meses de antigüedad.", "neutra")
 
-st.markdown("#### Cada mes de contrato, qué parte sigue (triángulo de cohortes)")
+comun.titulo("Cada mes de contrato, qué parte sigue (triángulo de cohortes)")
 etiquetas_y = [comun.mes_es(c) for c in tri.index]
 fig = go.Figure(go.Heatmap(
     z=tri.values, x=[f"mes {c}" for c in tri.columns], y=etiquetas_y,
@@ -65,16 +66,25 @@ comun.grafico(fig)
 st.caption("Cada fila es un mes de contrato; cada columna, los meses que han pasado. Si una cohorte reciente empeora, "
            "se ve aquí antes que en la media.")
 
-st.markdown("#### Qué haría")
-a, b, c = st.columns(3)
-with a:
-    comun.nota("**Alerta de baja:** una valoración baja de la familia avisa a su Referente Social antes de que se vaya.")
-with b:
-    comun.nota("**Recomendaciones:** pedirlas a las familias contentas; es el canal que más rinde.")
-with c:
-    comun.nota("**Coste real:** el valor de cada canal sale de esta curva y entra en su retorno, en Canales y ciudades.")
+comun.titulo("Explorar una cohorte o un canal")
+e1, e2, e3, e4 = st.columns([2, 1, 2, 1], vertical_alignment="bottom")
+cohorte_sel = e1.selectbox("Cohorte (mes de contrato)", list(tri.index[::-1]), format_func=comun.mes_es, key="cohorte-sel")
+if e2.button("Ver cohorte", icon=":material/open_in_new:", width="stretch"):
+    detalles.ficha_cohorte(cohorte_sel, d, tri)
+canal_sel = e3.selectbox("Canal de llegada", sorted(d["canal"].unique()), key="canal-ret-sel")
+if e4.button("Ver canal", icon=":material/open_in_new:", width="stretch"):
+    detalles.ficha_retencion_canal(canal_sel, d)
+
+comun.titulo("Qué haría")
+comun.notas([
+    "**Alerta de baja:** una valoración baja de la familia avisa a su Referente Social antes de que se vaya.",
+    "**Recomendaciones:** pedirlas a las familias contentas; es el canal que más rinde.",
+    "**Coste real:** el valor de cada canal sale de esta curva y entra en su retorno, en Canales y ciudades.",
+])
 
 with st.expander("Datos"):
     st.dataframe(km, hide_index=True, width="stretch")
     st.dataframe(tri, width="stretch")
+    comun.descarga(km, "permanencia-kaplan-meier", "Descargar la curva (CSV)")
+    comun.descarga(tri.rename_axis("cohorte").reset_index(), "triangulo-de-cohortes", "Descargar el triángulo de cohortes (CSV)")
 st.caption(comun.AVISO)

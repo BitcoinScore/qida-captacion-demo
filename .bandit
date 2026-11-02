@@ -1,0 +1,6 @@
+[bandit]
+# B608 (SQL por concatenación): las consultas de app/paginas/descubre.py y motor/metricas.py interpolan SOLO una lista de
+# marcadores «?» (',' .join('?' * n)); los valores (ciudades, fechas) se enlazan como parámetros. No entra texto de la familia.
+# S311 (random) en datos/generar.py: datos inventados con semilla, sin uso criptográfico.
+skips = B608,B311
+exclude = .venv,tests

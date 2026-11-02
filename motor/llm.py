@@ -45,7 +45,7 @@ def completar(sistema: str, mensaje: str, modelo: str = MODELO_ASISTENTE, timeou
     try:
         datos = json.loads(salida)
     except json.JSONDecodeError:
-        raise ErrorModelo((proc.stderr or salida or "sin respuesta").strip()[:500])
+        raise ErrorModelo((proc.stderr or salida or "sin respuesta").strip()[:500]) from None
     if datos.get("is_error"):
         raise ErrorModelo(str(datos.get("result", datos))[:500])
     return datos.get("result", "").strip()

@@ -13,7 +13,7 @@ La idea: **antes de construir IA, medir el embudo**; y construir solo donde se p
 
 | Pantalla | Para quién | Qué responde |
 |---|---|---|
-| **Web con asistente de noche** | La familia | Concepto de web con un asistente virtual (IA declarada) que, fuera de horario, entiende el caso, deja la llamada agendada y pasa a una persona si hace falta |
+| **Web con asistente de noche** | La familia | Concepto de web de una sola columna con scroll, con la paleta de Qida, un formulario de contacto con límites y un asistente virtual (IA declarada) que, fuera de horario, entiende el caso, deja la llamada agendada y pasa a una persona si hace falta |
 | **Viaje de la familia** | Dirección y marketing | 6 indicadores del periodo elegido (de «hoy» al último año) frente a su objetivo y al periodo anterior, el embudo de las mismas familias hasta «siguen al año» y el mapa del viaje (service blueprint). Cada tarjeta y cada etapa del embudo se pulsan: abren el desglose y el listado de familias |
 | **Canales y ciudades** | Marketing | CAC de pago y combinado, LTV a 12 meses, LTV:CAC y payback por canal; conversión con intervalos de confianza; mapa; atribución |
 | **Cola de llamadas** | Asesores familiares | A quién llamar primero (puntuación explicable), velocidad de respuesta, curva de ganancia y calibración |
@@ -51,8 +51,16 @@ Pruebas:
 
 ```bash
 .venv/Scripts/pip install -r requirements-dev.txt
-.venv/Scripts/pytest -q
+.venv/Scripts/pytest -q                                  # ~100 pruebas, sin modelo, ~1 min
+QIDA_MODO=vivo .venv/Scripts/python -m eval.adversarios  # 39 casos adversarios del asistente (necesita Claude Code, ~4 min)
 ```
+
+**Si vas a auditarlo (a mano o con IA)**, el punto de partida es [`docs/pruebas-calidad.md`](docs/pruebas-calidad.md): qué se
+probó, qué se encontró y se corrigió, y qué **no** está cubierto ni resuelto (privacidad de los datos de salud, límites de
+uso, idiomas, accesibilidad pendiente). Dos cosas que conviene saber antes de buscar fallos:
+- Todo lo que escribe la familia o devuelve el modelo se trata como entrada no fiable: la ficha del lead pasa por
+  `motor/contacto.py` antes de guardarse o pintarse.
+- Las consultas SQL con `f"…"` interpolan solo marcadores `?`; los valores van enlazados (ver `.bandit`).
 
 ## Estructura
 
@@ -62,8 +70,8 @@ motor/          asistente.py (prompt y ficha del lead), kb.md (base de conocimie
 datos/          esquema.sql (tablas tipo CRM y definiciones de métricas como vistas), generar.py (datos inventados)
 sql/            consultas que se enseñan en el panel
 eval/           conjuntos de casos (ajuste y reservados), ejecutar.py (reglas + juez + re-juzgar) y resultados por versión
-docs/           decisiones.md, auditoria-kpis.md, auditoria-web-familia.md
-tests/          pruebas (datos, métricas, scoring, asistente y carga de cada pantalla)
+docs/           decisiones.md, auditoria-kpis.md, auditoria-web-familia.md, pruebas-calidad.md
+tests/          pruebas (datos, métricas, scoring, asistente, contacto/seguridad y barrido de controles de cada pantalla)
 ```
 
 ## Documentación
@@ -71,3 +79,4 @@ tests/          pruebas (datos, métricas, scoring, asistente y carga de cada pa
 - [`docs/decisiones.md`](docs/decisiones.md) — arquitectura, decisiones, límites conocidos, qué haría con datos reales y coste.
 - [`docs/auditoria-kpis.md`](docs/auditoria-kpis.md) — auditoría de las métricas frente a estándares, y qué se corrigió.
 - [`docs/auditoria-web-familia.md`](docs/auditoria-web-familia.md) — auditoría de la web y el chat (RGPD, transparencia de la IA, conversión).
+- [`docs/pruebas-calidad.md`](docs/pruebas-calidad.md) — pruebas de seguridad, accesibilidad, móvil, rendimiento y del asistente, con fallos corregidos y límites.

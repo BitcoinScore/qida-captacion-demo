@@ -6,6 +6,7 @@ import streamlit as st
 from sklearn.metrics import cohen_kappa_score
 
 import comun
+import detalles
 import graficos
 from comun import es
 from motor import metricas
@@ -66,10 +67,11 @@ for col, (clave, titulo, sub, icono) in zip((c1, c2, c3), (
     if not datos[clave].empty:
         p, lo, hi, n = nota_de(datos[clave])
         comun.kpi(col, titulo, f"{es(p, 0)} %", f"{sub} · intervalo del 95 %: {es(lo, 0)}–{es(hi, 0)} % · "
-                                               f"{n} conversaciones", icono=icono)
+                                               f"{n} conversaciones", icono=icono,
+                  detalle=lambda clave=clave, titulo=titulo: detalles.calidad_conjunto(titulo, datos[clave]))
 
 fila.pintar()
-st.markdown("#### Respuestas correctas por versión (reglas + revisor automático), con intervalo del 95 %")
+comun.titulo("Respuestas correctas por versión (reglas + revisor automático), con intervalo del 95 %")
 CORTO = {CONJUNTOS[0][0]: "casos de ajuste", CONJUNTOS[1][0]: "casos nuevos 1", CONJUNTOS[2][0]: "casos nuevos 2"}
 fig = go.Figure()
 orden = []
@@ -77,7 +79,7 @@ for v in VERSIONES:  # una categoría por barra, en orden de versión: sin hueco
     for conjunto, _, _ in CONJUNTOS:
         if not datos.get((conjunto, v), pd.DataFrame()).empty:
             orden.append(f"<b>{v}</b><br>{CORTO[conjunto]}")
-for conjunto, color, ficheros in CONJUNTOS:
+for conjunto, color, _ficheros in CONJUNTOS:
     xs, ys, sup, inf, textos = [], [], [], [], []
     for v in VERSIONES:
         d = datos.get((conjunto, v))
@@ -100,17 +102,13 @@ st.caption("**v1 → v1 (revisor v2):** mismas respuestas, revisor corregido: el
            "corregido. **v3:** regla de fidelidad, tras ver que la v2 inventaba políticas con casos nuevos. La 1.ª tanda "
            "de casos nuevos ya se vio al diseñar la v3; por eso la que cuenta es la 2.ª, escrita antes de evaluarla.")
 
-st.markdown("#### Qué encontré y qué cambié")
-a, b, c, d = st.columns(4)
-with a:
-    comun.nota("**El revisor también fallaba.** No sabía la hora y suspendía «te llamamos mañana a las 9:00» a las 23:10.")
-with b:
-    comun.nota("**Prometía servicio donde no lo hay** (Las Palmas). Ahora solo lo afirma si la zona está en la lista.")
-with c:
-    comun.nota("**Pasaba a una persona de más** (dudas médicas, altas sin peligro). Ahora remite al médico y marca la urgencia.")
-with d:
-    comun.nota("**Sobreajuste:** 88 % con los casos de ajuste, 60 % con casos nuevos. La regla de fidelidad lo corrigió.",
-               "alerta")
+comun.titulo("Qué encontré y qué cambié")
+comun.notas([
+    "**El revisor también fallaba.** No sabía la hora y suspendía «te llamamos mañana a las 9:00» a las 23:10.",
+    "**Prometía servicio donde no lo hay** (Las Palmas). Ahora solo lo afirma si la zona está en la lista.",
+    "**Pasaba a una persona de más** (dudas médicas, altas sin peligro). Ahora remite al médico y marca la urgencia.",
+    ("**Sobreajuste:** 88 % con los casos de ajuste, 60 % con casos nuevos. La regla de fidelidad lo corrigió.", "alerta"),
+])
 
 actual = datos[(CONJUNTOS[0][0], "v3")]
 if actual.empty:
@@ -121,7 +119,7 @@ if not actual.empty:
         st.dataframe(fallos[["id", "categoria", "fallos", "motivo"]], hide_index=True, width="stretch")
 
     st.divider()
-    st.markdown("#### Comprobar al revisor automático: una persona etiqueta a ciegas")
+    comun.titulo("Comprobar al revisor automático: una persona etiqueta a ciegas")
     etiquetas = json.loads(ETIQUETAS.read_text(encoding="utf-8")) if ETIQUETAS.exists() else {}
     pendientes = [r for r in actual["r"] if r["id"] not in etiquetas]
     izq, der = st.columns([3, 2])

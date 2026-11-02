@@ -1,4 +1,3 @@
-import re
 import sqlite3
 import sys
 from contextlib import contextmanager
@@ -28,13 +27,24 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto
 
 ESTILO = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap');
+/* Tipografías servidas desde el propio repo (app/static/fonts): el navegador no contacta con Google */
+@font-face {{font-family: 'DM Sans'; font-weight: 100 1000; font-style: normal; font-display: swap;
+  src: url(app/static/fonts/DMSans-latin.woff2) format('woff2');}}
+@font-face {{font-family: 'DM Serif Display'; font-weight: 400; font-style: normal; font-display: swap;
+  src: url(app/static/fonts/DMSerifDisplay-latin.woff2) format('woff2');}}
 html, body, p, li, label, td, th, input, textarea, button, .stMarkdown {{font-family: 'DM Sans', Arial, sans-serif;}}
 [data-testid="stIconMaterial"], .material-symbols-rounded, [class*="material-symbols"] {{
   font-family: 'Material Symbols Rounded' !important;}}
 h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: {VERDE}; font-weight: 400 !important;
   letter-spacing: -.01em;}}
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
+/* Títulos con el nivel semántico correcto (h2/h3 tras el h1) y el aspecto de siempre: ver comun.titulo() */
+[data-testid="stMarkdownContainer"] .tit {{font-family: 'DM Sans', Arial, sans-serif !important; color: {VERDE};
+  font-weight: 700 !important; font-size: 1.25rem !important; line-height: 1.4 !important; margin: 1.8rem 0 .6rem !important;
+  padding: 0 !important; letter-spacing: 0;}}
+[data-testid="stMarkdownContainer"] .tit.serif {{font-family: 'DM Serif Display', Georgia, serif !important;
+  font-weight: 400 !important; font-size: 1.75rem !important; margin-top: 2rem !important; letter-spacing: -.01em;}}
+[data-testid="stMarkdownContainer"] .tit.menor {{font-size: 1.05rem !important; margin: 1.2rem 0 .4rem !important;}}
 /* Aire antes de cada subtítulo, en todas las pantallas (salvo si abre la columna o la página) */
 .block-container {{padding-top: 2.2rem !important;}}
 [data-testid="stMarkdownContainer"] h4 {{margin-top: 1.8rem !important; padding-top: 0 !important;}}
@@ -67,6 +77,14 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 [class*="st-key-filai-"] {{display: grid !important; gap: 12px !important; align-items: stretch;}}
 [class*="st-key-filai-"] > div {{display: flex; flex-direction: column;}}
 @media (max-width: 760px) {{[class*="st-key-filai-"] {{grid-template-columns: repeat(2, 1fr) !important;}}}}
+/* móvil: una tarjeta por fila y cifras que se pueden partir, para que nada se salga de la pantalla */
+@media (max-width: 480px) {{
+  [class*="st-key-filai-"] {{grid-template-columns: 1fr !important;}}
+  .fila-kpi {{grid-template-columns: 1fr !important;}}
+  .kpi .valor {{font-size: min(var(--tam-valor, 2.4rem), 2.2rem); white-space: normal; overflow-wrap: anywhere;}}
+  .kpi .estado {{white-space: normal !important;}}
+  .kpi .etiqueta {{overflow-wrap: anywhere;}}
+}}
 [class*="st-key-tarjeta-"] {{position: relative; gap: 0 !important; flex: 1 1 auto;}}
 /* la tarjeta llena su celda: toda la cadena de envoltorios de Streamlit hasta .kpi se estira */
 [class*="st-key-tarjeta-"] div:has(.kpi) {{display: flex !important; flex-direction: column; flex: 1 1 auto; width: 100%;
@@ -77,7 +95,8 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 [class*="st-key-tarjeta-"]:hover .kpi.alerta {{border-color: {NARANJA};}}
 [class*="st-key-tarjeta-"]:has(button:focus-visible) .kpi {{outline: 3px solid {VERDE_TEXTO}; outline-offset: 2px;}}
 [class*="st-key-detalle-"] {{position: absolute !important; inset: 0; z-index: 3; width: 100% !important; height: 100%;}}
-[class*="st-key-detalle-"] button {{width: 100%; height: 100%; opacity: 0; cursor: pointer;}}
+[class*="st-key-detalle-"] > div, [class*="st-key-detalle-"] [data-testid="stButton"] {{width: 100% !important; height: 100% !important;}}
+[class*="st-key-detalle-"] button {{width: 100%; height: 100% !important; min-height: 100% !important; opacity: 0; cursor: pointer;}}
 .kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
 .kpi.alerta .valor, .kpi.mal .valor {{color: {NARANJA_TEXTO};}}
@@ -95,12 +114,16 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 .chip.real {{background: #e6f2f1; border-color: {VERDE_MEDIO}; color: {VERDE};}}
 .nota {{border-radius: 12px; padding: 12px 16px; margin: 6px 0 14px; border: 1px solid {BORDE}; background: {FONDO};
   color: {TEXTO}; line-height: 1.5;}}
+.notas-fila {{display: grid; gap: 12px; margin: 6px 0 14px;}}
+.notas-fila .nota {{margin: 0;}}
+@media (max-width: 760px) {{.notas-fila {{grid-template-columns: 1fr !important;}}}}
 .nota.clave {{border-left: 5px solid {VERDE}; background: {FONDO};}}
 .nota.alerta {{border-left: 5px solid {NARANJA}; background: #fff7f3; border-color: #f4c3b0;}}
 .nota.neutra {{background: white;}}
 [data-testid="stChatMessageAvatarAssistant"], [data-testid="stChatMessageAvatarUser"] {{background: {VERDE} !important;
   color: white !important;}}
 [data-testid="stChatMessageAvatarUser"] {{background: {VERDE_CLARO} !important; color: {VERDE} !important;}}
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {{color: {GRIS_TEXTO} !important; opacity: 1 !important;}}
 .seccion {{font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: {VERDE_TEXTO}; font-weight: 700;
   margin: 18px 0 4px;}}
 </style>
@@ -126,6 +149,26 @@ def mes_es(ym: str) -> str:
     """«2026-09» → «septiembre de 2026»."""
     a, m = ym[:7].split("-")
     return f"{MESES[int(m) - 1]} de {a}"
+
+
+def titulo(texto: str, nivel: int = 2, serif: bool = False, menor: bool = False) -> None:
+    """Título de sección con el nivel semántico que toca (el h1 de la pantalla, luego h2, y h3 dentro de las ventanas).
+    `st.markdown("#### …")` saltaba de h1 a h4, lo que desorienta a un lector de pantalla."""
+    clases = "tit" + (" serif" if serif else "") + (" menor" if menor else "")
+    st.markdown(f"<h{nivel} class='{clases}'>{texto}</h{nivel}>", unsafe_allow_html=True)
+
+
+def notas(items: list) -> None:
+    """Fila de notas de la MISMA altura. Las columnas de Streamlit no se estiran entre sí, así que cada nota quedaba con su
+    alto y la fila salía desalineada. `items`: textos o (texto, tipo)."""
+    import re as _re
+    cajas = []
+    for it in items:
+        texto, tipo = (it, "clave") if isinstance(it, str) else it
+        html = _re.sub(r"\*\*(.+?)\*\*", r"<b>\g<1></b>", texto)
+        cajas.append(f"<div class='nota {tipo}'>{html}</div>")
+    st.markdown(f"<div class='notas-fila' style='grid-template-columns:repeat({len(cajas)}, 1fr)'>{''.join(cajas)}</div>",
+                unsafe_allow_html=True)
 
 
 def nota(texto: str, tipo: str = "clave") -> None:
@@ -230,6 +273,14 @@ def grafico(fig) -> None:
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False, "scrollZoom": False})
 
 
+def descarga(df: pd.DataFrame, nombre: str, etiqueta: str = "Descargar en Excel (CSV)") -> None:
+    """Botón para bajar una tabla. CSV con «;» y coma decimal y UTF-8 con BOM: Excel en español lo abre sin asistente.
+    `on_click="ignore"` evita el rerun, así que una ventana de detalle no se cierra al descargar."""
+    csv = df.to_csv(index=False, sep=";", decimal=",", date_format="%d/%m/%Y %H:%M").encode("utf-8-sig")
+    st.download_button(etiqueta, csv, file_name=f"qida-demo-{nombre}-2026-11-02.csv", mime="text/csv",
+                       key=f"descarga-{nombre}", icon=":material/download:", on_click="ignore")
+
+
 class Fila:
     """Fila de tarjetas KPI que miden lo mismo: se pinta como una sola rejilla HTML (las columnas de Streamlit no se
     estiran entre sí). Uso: `fila = comun.Fila(); comun.kpi(fila, ...); ...; fila.pintar()`."""
@@ -254,15 +305,19 @@ class Fila:
                     if n >= 5 else "")
             st.markdown(f"<style>.st-key-filai-{self.clave} {{grid-template-columns: repeat({n}, 1fr); --tam-valor: {tam}}}"
                         f"{tres}</style>", unsafe_allow_html=True)
-            abrir = None
-            with st.container(key=f"filai-{self.clave}"):
-                for i, (html, detalle, nombre) in enumerate(zip(self.tarjetas, self.detalles, self.nombres)):
-                    with st.container(key=f"tarjeta-{self.clave}-{i}"):
-                        st.markdown(html, unsafe_allow_html=True)
-                        if detalle and st.button(f"Ver detalle de {nombre}", key=f"detalle-{self.clave}-{i}"):
-                            abrir = detalle
-            if abrir:
-                abrir()
+            @st.fragment  # pulsar una tarjeta recarga solo esta fila, no toda la pantalla: la ventana se abre mucho antes
+            def tarjetas() -> None:
+                abrir = None
+                with st.container(key=f"filai-{self.clave}"):
+                    for i, (html, detalle, nombre) in enumerate(zip(self.tarjetas, self.detalles, self.nombres)):
+                        with st.container(key=f"tarjeta-{self.clave}-{i}"):
+                            st.markdown(html, unsafe_allow_html=True)
+                            if detalle and st.button(f"Ver detalle de {nombre}", key=f"detalle-{self.clave}-{i}"):
+                                abrir = detalle
+                if abrir:
+                    abrir()
+
+            tarjetas()
             return
         st.markdown(f"<div class='fila-kpi-caja'><div class='fila-kpi{' ancha' if n >= 5 else ''}' "
                     f"style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam}'>" + "".join(self.tarjetas) + "</div></div>",

@@ -9,10 +9,14 @@ Es una demo: si algo no está aquí, el asistente no lo sabe.
 - Misión «Triple M»: que las personas vivan más tiempo, con mejor salud y más calidad de vida en casa.
 
 ## Servicios
-- Cuidadoras por horas: desde 2 horas a la semana.
+- Cuidadoras por horas: desde 1 hora a la semana hasta 40, con turnos de día, de noche o de fin de semana (según qida.es el 02-11-2026).
 - Cuidadora interna (24 horas, vive en el domicilio).
 - Cuidadoras de fin de semana.
 - Cuidadora nocturna.
+- Acompañamiento hospitalario, diurno o nocturno.
+- Tareas del cuidado en casa: compañía, higiene personal, control de la medicación, paseo y ejercicio, preparación de comidas, compras
+  domésticas, supervisión de actividades y estimulación cognitiva.
+- Aplicación descargable (Android e iOS) para seguir el servicio.
 - «Trae a tu cuidador»: apoyo a familias que ya tienen una cuidadora contratada directamente.
 - Ayuda con la Dependencia: Qida está acreditada y puede ayudar con la prestación económica vinculada al servicio (PEVS) y
   con el servicio público de ayuda a domicilio (SAD).
@@ -43,6 +47,12 @@ Es una demo: si algo no está aquí, el asistente no lo sabe.
 Cataluña, Comunidad de Madrid, Euskadi, Galicia, Navarra, Comunidad Valenciana, Asturias, Castilla-La Mancha, Andalucía
 (Sevilla, Málaga y alrededores), La Rioja, Castilla y León (Burgos, Valladolid, Palencia) y Cantabria (Santander).
 Si la ciudad no está en la lista, tomar los datos igualmente y decir que un asesor confirmará la cobertura.
+
+## Seguridad y datos
+- Urgencia médica o de seguridad: 112. Sin instrucciones propias.
+- Si alguien habla de hacerse daño: 112 si hay peligro ahora, y la línea 024 de atención a la conducta suicida (servicio
+  público, gratuito y 24 horas).
+- Borrado de datos o no ser llamado: lo gestiona una persona del equipo; el asistente no puede borrar datos ni cambiar nada.
 
 ## Horario de atención telefónica
 - Lunes a viernes de 9:00 a 20:00. Fines de semana y festivos de 9:00 a 18:00.

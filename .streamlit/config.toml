@@ -7,6 +7,14 @@ backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#EFF5F5"
 textColor = "#333333"
 
+[browser]
+# Sin telemetría de uso hacia terceros (Streamlit la envía a Fivetran/Segment): la herramienta maneja datos de familias.
+gatherUsageStats = false
+
+[server]
+# Sirve app/static (tipografías propias, sin Google Fonts).
+enableStaticServing = true
+
 [client]
 # Nunca enseñar trazas técnicas en pantalla (la familia vería rutas y errores en inglés); el detalle va al registro.
 showErrorDetails = "none"

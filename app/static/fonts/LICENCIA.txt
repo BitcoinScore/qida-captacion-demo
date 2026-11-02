@@ -1,0 +1,3 @@
+DM Sans (c) 2014 The DM Sans Project Authors y DM Serif Display (c) 2014 The DM Serif Display Project Authors,
+con licencia SIL Open Font License 1.1 (https://openfontlicense.org). Subconjunto latino descargado de Google Fonts
+el 2026-11-02 y servido desde el propio repositorio para que el navegador no contacte con Google.

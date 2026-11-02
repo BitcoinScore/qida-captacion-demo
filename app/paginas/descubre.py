@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import comun
+import detalles
 import graficos
 from comun import es
 from motor import metricas
@@ -65,7 +66,7 @@ por_ciudad["estado"], por_ciudad["ic"] = estados, ics
 
 
 st.divider()
-st.subheader("1. ¿Qué canal compensa?")
+comun.titulo("1. ¿Qué canal compensa?", serif=True)
 with st.container():
     st.markdown("**Cuántas veces vuelve lo invertido en cada canal**")
     comun.grafico(graficos.ltv_cac(eco, alto=320))
@@ -114,18 +115,22 @@ with st.container():
 .rent tr.sin td {{color:{comun.GRIS_TEXTO}; font-style:italic}}
 .rent tr.sin td.canal {{font-style:normal}}
 </style>
-<table class="rent">
-<tr><th></th><th colspan="2" class="grupo"><span>Volumen</span></th><th colspan="2" class="grupo"><span>Una familia</span></th>
+<div class="rent-envoltorio" style="overflow-x:auto"><table class="rent">
+<tr><th><span style="position:absolute;left:-9999px">Canal</span></th><th colspan="2" class="grupo"><span>Volumen</span></th><th colspan="2" class="grupo"><span>Una familia</span></th>
 <th colspan="2" class="grupo"><span>Rentabilidad</span></th></tr>
 <tr><th>Canal</th><th>Familias</th><th>Contratos</th><th>Cuesta captarla</th><th>Deja en 12 meses</th>
 <th>Retorno · la raya marca 3×</th><th>Se recupera en</th></tr>
 {''.join(filas)}
-</table>""", unsafe_allow_html=True)
+</table></div>""", unsafe_allow_html=True)
         total = eco["gasto_total"].sum() / max(eco["contratos"].sum(), 1)
         st.caption(f"Coste medio de captar una familia en el periodo: **{es(total, 0, ' €')}** (en la portada, el del último mes). "
                    "«Cuesta captarla» incluye medios, equipo y acuerdos. «Deja en 12 meses» = facturación × margen bruto "
                    "**supuesto** del 30 % × meses que sigue. Naranja = retorno por debajo de 3×. «Pocos datos» = menos de 50 "
                    "contratos.")
+        cc1, cc2 = st.columns([3, 1], vertical_alignment="bottom")
+        canal_sel = cc1.selectbox("Abrir la ficha de un canal", list(eco["canal"]), key="canal-ficha")
+        if cc2.button("Ver ficha del canal", icon=":material/open_in_new:", width="stretch"):
+            detalles.ficha_canal(canal_sel, eco, cruce, curvas, atrib, periodo)
         with st.expander("Ver detalle: gasto, coste por familia y por valoración, coste solo de medios"):
             detalle = eco.sort_values("ltv_cac", ascending=False, na_position="last")
             st.dataframe(pd.DataFrame({
@@ -137,7 +142,7 @@ with st.container():
             }), hide_index=True, width="stretch")
 
 st.divider()
-st.subheader("2. ¿Cuál convierte?")
+comun.titulo("2. ¿Cuál convierte?", serif=True)
 with st.container():
     izq, der = st.columns(2)
     with izq:
@@ -149,7 +154,7 @@ with st.container():
         comun.grafico(graficos.destino_por_canal(flujos))
 
 st.divider()
-st.subheader("3. Canal × ciudad")
+comun.titulo("3. Canal × ciudad", serif=True)
 with st.container():
     MODOS = ["Retorno de la inversión", "% que contrata", "Coste por contrato (CAC total)"]
     metrica = st.radio("Mostrar", MODOS, horizontal=True)
@@ -193,9 +198,13 @@ with st.container():
     st.caption(f"{explicacion} * = menos de 15 contratos en esa celda: no decidir solo con ella. — = sin contratos.{nota_sin}")
 
 st.divider()
-st.subheader("4. ¿Dónde?")
+comun.titulo("4. ¿Dónde?", serif=True)
 with st.container():
     comun.grafico(graficos.mapa(por_ciudad))
+    cd1, cd2 = st.columns([3, 1], vertical_alignment="bottom")
+    ciudad_sel = cd1.selectbox("Abrir la ficha de una ciudad", list(por_ciudad["ciudad"]), key="ciudad-ficha")
+    if cd2.button("Ver ficha de la ciudad", icon=":material/open_in_new:", width="stretch"):
+        detalles.ficha_ciudad(ciudad_sel, por_ciudad, cruce, periodo)
     if (por_ciudad["estado"] == "en la media").all():
         comun.nota("Ninguna ciudad convierte de forma significativamente distinta al resto: las diferencias son azar.",
                    "neutra")
@@ -203,7 +212,7 @@ with st.container():
                "Cobertura (gris) y anuncios en Meta (anillo): reales, de la web y la Biblioteca de anuncios (2 de noviembre de 2026).")
 
 st.divider()
-st.subheader("5. Qué canal trae a la familia y cuál la cierra")
+comun.titulo("5. Qué canal trae a la familia y cuál la cierra", serif=True)
 with st.container():
     a = atrib.rename(columns={"contratos_ultimo_contacto": "ultimo", "contratos_primer_contacto": "primero"})
     a["dif"] = a["primero"] - a["ultimo"]
@@ -234,6 +243,8 @@ with st.container():
 
 with st.expander("Datos y consultas"):
     st.dataframe(eco.drop(columns=["ic_bajo", "ic_alto"]), hide_index=True, width="stretch")
+    comun.descarga(eco.drop(columns=["ic_bajo", "ic_alto"]), "economia-por-canal", "Descargar la economía por canal (CSV)")
+    comun.descarga(cruce, "canal-por-ciudad", "Descargar canal × ciudad (CSV)")
     st.code(sql_embudo, language="sql")
     st.code(sql_att, language="sql")
 st.caption(comun.AVISO)
