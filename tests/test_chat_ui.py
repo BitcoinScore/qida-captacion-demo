@@ -78,3 +78,16 @@ def test_la_tarjeta_del_equipo_enseña_la_ficha_y_escapa_el_texto():
     assert "<img" not in html and "&lt;img" in html
     vacia = chat_ui.equipo_html({}, "mañana")
     assert vacia.count("pendiente") >= 4 and "Pasa a una persona" not in vacia
+
+
+def test_el_boton_invisible_cubre_todo_el_lanzador():
+    """Regresión: el botón medía solo el ancho de su texto y el avatar quedaba fuera. Debe posicionarse sobre el contenedor entero."""
+    css = chat_ui.LANZADOR_CSS
+    regla = css[css.index(".st-key-boton-chat button {{".replace("{{", "{")):]
+    assert "position: absolute !important" in regla[:300] and "inset: 0" in regla[:300] and "width: 100% !important" in regla[:300]
+
+
+def test_la_conversacion_tiene_scroll_propio_dentro_del_panel():
+    """Regresión: stLayoutWrapper crecía con el contenido y la conversación nunca hacía scroll. Debe limitarse al alto del panel."""
+    css = chat_ui.CSS
+    assert 'stLayoutWrapper"]' in css and "min-height: 0" in css and "overflow-y: auto" in css and "column-reverse" in css

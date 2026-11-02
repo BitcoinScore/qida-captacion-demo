@@ -188,7 +188,13 @@ section[role="dialog"]:has(.qchat) > button[aria-label="Close"] svg {{fill: whit
 section[role="dialog"]:has(.qchat) > div {{flex: 1 1 auto; min-height: 0; padding: 0 !important; display: flex; flex-direction: column;}}
 section[role="dialog"]:has(.qchat) > div > [data-testid="stVerticalBlock"] {{flex: 1 1 auto; min-height: 0; display: flex !important;
   flex-direction: column; gap: 0 !important; height: 100%;}}
-section[role="dialog"]:has(.qchat) [data-testid="stElementContainer"] {{width: 100%; margin: 0;}}
+/* Streamlit mete un envoltorio (stLayoutWrapper) y otro stVerticalBlock que, sin límite, crecen con el contenido y desbordan el panel:
+   la conversación nunca llegaba a tener scroll. Todos los niveles hasta la conversación se limitan al alto del panel. */
+section[role="dialog"]:has(.qchat) > div > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] {{flex: 1 1 0; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;}}
+section[role="dialog"]:has(.qchat) > div > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] {{
+  flex: 1 1 0; min-height: 0; height: 100%; display: flex !important; flex-direction: column; gap: 0 !important;}}
+section[role="dialog"]:has(.qchat) [data-testid="stElementContainer"] {{width: 100%; margin: 0; flex: 0 0 auto;}}
 section[role="dialog"]:has(.qchat) [data-testid="stElementContainer"]:has(.qconv) {{flex: 1 1 auto; min-height: 0; overflow-y: auto;
   display: flex; flex-direction: column-reverse; background: #F4F8F8; scroll-behavior: smooth;}}
 body:has(.qchat) .st-key-boton-chat {{display: none;}}
@@ -321,10 +327,13 @@ LANZADOR_CSS = f"""
 <style>
 .st-key-boton-chat {{position: fixed; right: 24px; bottom: 24px; z-index: 999; width: auto !important; max-width: calc(100vw - 32px);}}
 .st-key-boton-chat [data-testid="stElementContainer"]:has(.ql) {{position: relative; z-index: 1;}}
-.st-key-boton-chat [data-testid="stElementContainer"]:has([data-testid="stButton"]) {{position: absolute !important; inset: 0; z-index: 3;
-  margin: 0 !important;}}
-.st-key-boton-chat [data-testid="stButton"], .st-key-boton-chat [data-testid="stButton"] > div {{width: 100% !important; height: 100% !important;}}
-.st-key-boton-chat button {{width: 100% !important; height: 100% !important; opacity: 0; cursor: pointer; border-radius: 28px;}}
+/* El botón invisible se posiciona directamente sobre TODO el lanzador (el contenedor fijo), sin depender del ancho de sus envoltorios:
+   así pulsar el avatar, el bocadillo o el «Escríbeme» abre el chat. */
+.st-key-boton-chat [data-testid="stElementContainer"]:has([data-testid="stButton"]),
+.st-key-boton-chat [data-testid="stButton"], .st-key-boton-chat [data-testid="stButton"] > div {{position: static !important; margin: 0 !important;
+  width: 0 !important; height: 0 !important; min-height: 0 !important; overflow: visible;}}
+.st-key-boton-chat button {{position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; z-index: 3; opacity: 0;
+  cursor: pointer; border-radius: 28px; padding: 0 !important; min-height: 0 !important;}}
 .ql {{display: flex; flex-direction: column; align-items: flex-end; gap: 12px; position: relative;}}
 .ql-check {{position: absolute; opacity: 0; pointer-events: none;}}
 .ql-boca {{position: relative; width: min(300px, calc(100vw - 48px)); background: white; border-radius: 20px 20px 6px 20px; padding: .95rem 1.1rem .85rem;
