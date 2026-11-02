@@ -160,35 +160,34 @@ with st.container():
                "Cobertura (gris) y anuncios en Meta (anillo): reales, de la web y la Biblioteca de anuncios (2 de noviembre de 2026).")
 
 st.divider()
-st.subheader("5. Atribución")
+st.subheader("5. Qué canal trae a la familia y cuál la cierra")
 with st.container():
-    st.markdown("**¿A qué canal se le apunta cada contrato?** Una de cada doce familias deja sus datos dos veces, por "
-                "canales distintos (por ejemplo, primero descarga el menú y una semana después llama). Según a qué canal "
-                "se le apunte el contrato, cambia lo que parece rendir cada uno.")
     a = atrib.rename(columns={"contratos_ultimo_contacto": "ultimo", "contratos_primer_contacto": "primero"})
     a["dif"] = a["primero"] - a["ultimo"]
-    a = a.sort_values("ultimo")
-    fig = go.Figure()
-    for _, f in a.iterrows():
-        fig.add_shape(type="line", x0=f["ultimo"], x1=f["primero"], y0=f["canal"], y1=f["canal"],
-                      line=dict(color=graficos.PERDIDA, width=6))
-    fig.add_scatter(x=a["ultimo"], y=a["canal"], mode="markers", name="Último contacto (el que usamos)",
-                    marker=dict(size=13, color=graficos.ACENTO))
-    fig.add_scatter(x=a["primero"], y=a["canal"], mode="markers", name="Primer contacto",
-                    marker=dict(size=13, color="white", line=dict(color=graficos.MEDIO, width=2.5)))
-    fig.add_scatter(x=a[["ultimo", "primero"]].max(axis=1), y=a["canal"], mode="text", showlegend=False, hoverinfo="skip",
-                    textposition="middle right",
-                    text=[f"   {es(u, 0)} → {es(p_, 0)}  <b style='color:{comun.VERDE_TEXTO if d > 0 else comun.NARANJA_TEXTO if d < 0 else graficos.GRIS}'>"
-                          f"({'+' if d > 0 else ''}{es(d, 0)})</b>" for u, p_, d in zip(a["ultimo"], a["primero"], a["dif"])])
-    graficos._limpio(fig, 60 + 46 * len(a))
-    fig.update_layout(xaxis=dict(title="contratos apuntados al canal", range=[0, a[["ultimo", "primero"]].max().max() * 1.3]),
-                      yaxis_title=None, legend=dict(orientation="h", y=1.08, x=0))
+    a = a.sort_values("dif")
+    st.markdown("**Unos canales descubren familias y otros las cierran.** Ejemplo: Carmen descarga el menú semanal el lunes "
+                "y el jueves llama por teléfono y contrata. El contrato se apunta al teléfono, pero fue el menú quien la trajo.")
+    colores = [graficos.ACENTO if d > 0 else graficos.NEUTRO for d in a["dif"]]
+    fig = go.Figure(go.Bar(
+        x=a["dif"], y=a["canal"], orientation="h", marker_color=colores,
+        text=[f"{'+' if d > 0 else ''}{es(d, 0)} familias" for d in a["dif"]], textposition="outside", cliponaxis=False,
+        customdata=list(zip(a["ultimo"], a["primero"])),
+        hovertemplate="%{y}: cierra %{customdata[0]} contratos; trajo a %{customdata[1]} familias que contrataron<extra></extra>"))
+    fig.add_vline(x=0, line=dict(color=graficos.GRIS, width=1))
+    lim = a["dif"].abs().max() * 1.6
+    fig.add_annotation(x=lim * 0.55, y=1.08, yref="paper", showarrow=False, text="<b>→ Descubre</b> más familias de las que cierra",
+                       font=dict(color=comun.VERDE_TEXTO, size=12))
+    fig.add_annotation(x=-lim * 0.55, y=1.08, yref="paper", showarrow=False, text="Cierra familias que trajo otro canal <b>←</b>",
+                       font=dict(color=graficos.GRIS, size=12))
+    graficos._limpio(fig, 70 + 44 * len(a))
+    fig.update_layout(xaxis=dict(range=[-lim, lim], title="familias que trajo el canal menos contratos que cerró", zeroline=False),
+                      yaxis_title=None, margin=dict(l=10, r=10, t=40, b=10))
     comun.grafico(fig)
     sube = a.loc[a["dif"].idxmax()]
-    comun.nota(f"**Lectura:** con el primer contacto, **{sube['canal']}** pasa de {es(sube['ultimo'], 0)} a "
-               f"{es(sube['primero'], 0)} contratos: atrae familias que acaban cerrando por otro canal. Por eso no se "
-               "recorta un canal solo porque «no cierra»: se mira también qué familias trae. Aquí se usa el último "
-               "contacto, y se dice.", "neutra")
+    comun.nota(f"**Lectura:** {sube['canal']} solo cierra {es(sube['ultimo'], 0)} contratos, pero fue el primer contacto "
+               f"de {es(sube['primero'], 0)} familias que acabaron contratando, casi todas por otro canal. Recortarlo por "
+               "«no cerrar» haría perder esas familias. En el resto del panel, el contrato se apunta al canal que cierra (último "
+               "contacto), y se dice.", "neutra")
 
 with st.expander("Datos y consultas"):
     st.dataframe(eco.drop(columns=["ic_bajo", "ic_alto"]), hide_index=True, width="stretch")
