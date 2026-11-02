@@ -75,3 +75,36 @@ def test_el_modelo_solo_recibe_los_ultimos_mensajes():
     historial = [{"rol": "usuario", "texto": str(i)} for i in range(100)]
     assert len(limites.historial_para_el_modelo(historial)) == limites.MENSAJES_RECIENTES
     assert limites.historial_para_el_modelo(historial)[-1]["texto"] == "99"
+
+
+# ── Un turno del chat no deja preguntas sin contestar ────────────────────────────────────────────────────────────────
+from motor import conversacion  # noqa: E402
+
+
+def test_turno_guarda_pregunta_y_respuesta_juntas():
+    historial = []
+    texto, ficha = conversacion.turno(historial, "Hola", lambda h, a: ("Respuesta", {"ciudad": "Madrid"}), AHORA, "600000000")
+    assert texto == "Respuesta" and ficha == {"ciudad": "Madrid"}
+    assert [m["rol"] for m in historial] == ["usuario", "asistente"]
+
+
+def test_si_la_ejecucion_se_cancela_el_historial_no_cambia():
+    """Streamlit cancela la ejecución (excepción que no es `Exception`) si se pulsa otro botón mientras responde el modelo."""
+    class Cancelada(BaseException):
+        pass
+
+    def responder_cancelado(h, a):
+        raise Cancelada
+
+    historial = [{"rol": "usuario", "texto": "antes"}, {"rol": "asistente", "texto": "respuesta"}]
+    with pytest.raises(Cancelada):
+        conversacion.turno(historial, "pregunta cancelada", responder_cancelado, AHORA, "600000000")
+    assert len(historial) == 2, "no puede quedar una pregunta sin contestar"
+
+
+def test_si_el_modelo_falla_la_familia_recibe_un_respaldo_y_el_telefono():
+    def falla(h, a):
+        raise RuntimeError("sin red")
+    historial = []
+    texto, ficha = conversacion.turno(historial, "Hola", falla, AHORA, "656 726 469")
+    assert "656 726 469" in texto and ficha == {} and len(historial) == 2

@@ -125,3 +125,16 @@ def test_web_estructura_de_una_pagina_de_scroll(con):
     ids = set(re.findall(r"id=['\"]([\w-]+)['\"]", texto))
     assert enlaces and enlaces <= ids, f"enlaces sin destino: {enlaces - ids}"
     assert "112" in texto and "656 726 469" in texto and "desde 170" in texto.lower()
+
+
+def test_el_chat_no_exige_casilla_para_escribir(con, monkeypatch):
+    """En una urgencia nadie debe tener que marcar nada para pedir ayuda: se informa y se puede escribir ya."""
+    from motor import llm
+    monkeypatch.setattr(llm, "modo", lambda: "vivo")
+    at = abrir("web")
+    next(b for b in at.button if "Asistente virtual" in b.label).click().run()
+    assert not at.exception, at.exception
+    assert not any("acepto" in (c.key or "") for c in at.checkbox if (c.key or "").endswith("chat"))
+    assert at.chat_input and not at.chat_input[0].disabled
+    assert any("Prefiero que me llame" in b.label for b in at.button)
+    assert any("aceptas que Qida use lo que cuentes" in c.value for c in at.caption)

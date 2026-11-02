@@ -43,7 +43,7 @@ sql_embudo = comun.leer_sql("1_embudo_por_canal.sql")
 fiables = eco[(eco["contratos"] >= 50) & eco["ltv_cac"].notna()]
 if len(fiables) >= 2:
     mejor, peor = fiables.loc[fiables["ltv_cac"].idxmax()], fiables.loc[fiables["ltv_cac"].idxmin()]
-    conclusion = (f"{mejor['canal']} devuelve {es(mejor['ltv_cac'])} veces lo que cuesta; "
+    conclusion = (f"Con datos de ejemplo, {mejor['canal']} devuelve {es(mejor['ltv_cac'])} veces lo que cuesta; "
                   f"{peor['canal']}, {es(peor['ltv_cac'])} veces")
 else:
     conclusion = "Canales y ciudades"

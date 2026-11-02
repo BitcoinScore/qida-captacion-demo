@@ -105,7 +105,7 @@ ltv_cac = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["gasto_total"].sum()
 pct_noche = act["noche"]
 tasa_dia, tasa_noche = val_dia / n_dia, val_noche / n_noche  # llegan a valoración
 
-comun.cabecera("Viaje de la familia", "La mayor fuga está entre la primera llamada y la valoración",
+comun.cabecera("Viaje de la familia", "Con datos de ejemplo, la mayor fuga está entre la primera llamada y la valoración",
                "dirección y marketing",
                f"De cada 100 familias con las que habla un asesor/a familiar, solo {es(pct(valoraciones, contactadas), 0)} "
                f"llegan a la valoración. Y el {es(pct_noche, 0)} % pide ayuda cuando no hay nadie al teléfono.")

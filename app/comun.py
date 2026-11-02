@@ -14,7 +14,7 @@ DB = RAIZ / "datos" / "crm.db"
 SQL = RAIZ / "sql"
 CIUDADES = ["Barcelona", "Madrid", "Valencia", "Sevilla", "A Coruña"]
 
-AVISO = "Datos **inventados** para la demo, con la forma de un CRM tipo Odoo. No son datos de Qida."
+AVISO = "Datos **inventados** para la demo, con la forma de un CRM tipo Odoo (el que Qida cita en su oferta de empleo). No son datos de Qida."
 LOGO = Path(__file__).resolve().parent / "assets" / "qida_logo.png"
 
 # Identidad de Qida (qida.es, 02-11-2026)
@@ -239,7 +239,7 @@ def ejecutar(nombre: str, ciudades: list[str]) -> tuple[str, pd.DataFrame]:
     return texto, df
 
 
-def cabecera(pantalla: str, conclusion: str, quien: str, para_que: str, chip: str = "Concepto · datos inventados",
+def cabecera(pantalla: str, conclusion: str, quien: str, para_que: str, chip: str = "Datos de ejemplo · no son de Qida",
              real: bool = False) -> None:
     """Cabecera de cada pantalla: nombre y destinatario en pequeño, la CONCLUSIÓN como título, y el contexto."""
     st.markdown(f"<div class='seccion'>{pantalla} · para {quien}</div>", unsafe_allow_html=True)

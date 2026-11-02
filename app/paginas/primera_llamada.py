@@ -29,7 +29,7 @@ sql_vel, velocidad = comun.ejecutar("4_velocidad_respuesta.sql", ciudades)
 gan = scoring.ganancia(test)
 cubiertos_30 = gan.loc[gan["pct_llamadas"] == 30, "pct_contratos"].iloc[0]
 
-comun.cabecera("Cola de llamadas", f"Llamando primero al 30 % mejor puntuado se cubre el {es(cubiertos_30, 0)} % de los contratos",
+comun.cabecera("Cola de llamadas", f"Con datos de ejemplo, llamar primero al 30 % mejor puntuado cubriría el {es(cubiertos_30, 0)} % de los contratos",
                "asesores/as familiares",
                "Cada mañana: a quién llamar primero y por qué. Urgentes primero; después, por probabilidad de contratar. "
                "Ordena, no descarta: todas las familias reciben su llamada.")

@@ -52,3 +52,13 @@ indicador de espera ya parcial, personalización por ciudad).
 
 Nota: la regla «eres un asistente con IA; no reveles el modelo» se añadió después de la evaluación v2; el caso reservado
 R19 (revelaba el modelo) debería pasar ahora, pero no está medido.
+
+## Actualización (2026-11-02, noche): el chat ya no pide marcar una casilla
+
+La casilla obligatoria del punto 2 bloqueaba el chat hasta marcarla: en una urgencia o de madrugada, justo cuando la familia
+más lo necesita, era un obstáculo. Ahora el chat se puede usar desde el primer segundo y la privacidad se resuelve así:
+**aviso visible antes de escribir** («al escribir y dejarnos tu teléfono aceptas que Qida use lo que cuentes para llamarte…»,
+sin detalles médicos, borrado a petición), el **112 fijo** arriba, y el **consentimiento queda ligado al acto de dejar el
+teléfono**: cada lead guarda el texto del aviso, la versión y la fecha. Sin teléfono solo se guarda si hay que pasarlo a una
+persona. El formulario sigue con casilla (no hay urgencia que bloquear). Esta decisión debe validarla el equipo legal de Qida.
+

@@ -10,7 +10,6 @@ qida.es, propiedad de Qida, y se usan solo en esta demo privada.
 """
 import base64
 import json
-import logging
 import re
 import time as reloj
 from datetime import datetime, time
@@ -18,13 +17,15 @@ from datetime import datetime, time
 import streamlit as st
 
 import comun
-from motor import asistente, leads, limites, llm
+from motor import asistente, conversacion, leads, limites, llm
 from motor.contacto import horario, limpiar_ficha, normalizar_telefono
 
 TELEFONO = "656 726 469"  # el que publica qida.es (comprobado el 2026-11-02; antes la demo llevaba 635 704 124)
 SERVICIOS = ["Cuidadora por horas", "Cuidadora interna", "Fines de semana", "Cuidadora nocturna", "Aún no lo sé"]
 CASILLA = "Acepto que Qida use mis datos para llamarme y preparar el presupuesto."
-CASILLA_CHAT = "Acepto que Qida use lo que escriba, incluidos los datos de salud que cuente, para llamarme."
+AVISO_CHAT = ("Al escribir y dejarnos tu teléfono aceptas que Qida use lo que cuentes para llamarte y preparar el presupuesto. "
+              "No hace falta que cuentes detalles médicos. Puedes pedir que borremos tus datos cuando quieras. "
+              "Política de privacidad (en la web real).")
 PRIVACIDAD = ("No hace falta que nos cuentes detalles médicos. Puedes pedir que borremos tus datos cuando quieras. "
               "Política de privacidad (en la web real).")
 LOGO_B64 = base64.b64encode(comun.LOGO.read_bytes()).decode() if comun.LOGO.exists() else ""
@@ -233,7 +234,7 @@ abierto, franja, cuando_llamamos = horario(ahora)
 def guardar_lead(canal: str, ficha: dict, conversacion: list | None = None) -> int:
     """Guarda el lead con el texto exacto que la familia aceptó (formulario o chat) y devuelve su id."""
     with comun.conexion() as con:
-        return leads.guardar(con, ahora, canal, ficha, conversacion, CASILLA if canal == "Formulario" else CASILLA_CHAT)
+        return leads.guardar(con, ahora, canal, ficha, conversacion, CASILLA if canal == "Formulario" else AVISO_CHAT)
 
 
 st.session_state.setdefault("form_pintado_en", reloj.time())  # para el tiempo mínimo antes de enviar el formulario
@@ -338,6 +339,12 @@ def chat_grabado() -> None:
     vista_equipo(elegida["ficha"], cuando)
 
 
+def encolar(texto: str) -> None:
+    """Apunta un mensaje de la familia en la cola del chat (se llama desde los botones y el campo de texto)."""
+    if texto and texto.strip():
+        st.session_state.setdefault("pendientes", []).append(texto)
+
+
 @st.dialog("Asistente virtual de Qida", width="large")
 def chat():
     historial = st.session_state.setdefault("historial", [])
@@ -346,8 +353,9 @@ def chat():
     if llm.modo() == "grabado":
         chat_grabado()
         return
-    acepto = st.checkbox(CASILLA_CHAT, key="acepto_chat")
-    st.caption(PRIVACIDAD)
+    # Sin casilla que bloquee: en una urgencia o de madrugada, nadie debe tener que «aceptar» para pedir ayuda. Se informa
+    # antes de escribir y el consentimiento es el acto de dejar el teléfono (queda registrado con este texto en cada lead).
+    st.caption(AVISO_CHAT)
 
     caja = st.container(height=320)
     with caja:
@@ -357,38 +365,34 @@ def chat():
         for m in historial:
             st.chat_message("user" if m["rol"] == "usuario" else "assistant").write(m["texto"])
 
-    pregunta = None
-    if acepto:
-        if not historial:
-            r1, r2, r3 = st.columns(3)
-            for col, texto in ((r1, "Necesito ayuda urgente en casa"), (r2, "Quiero saber precios"),
-                               (r3, "Tengo dudas con la Dependencia")):
-                if col.button(texto, width="stretch"):
-                    pregunta = texto
-        if st.button("Prefiero que me llame una persona", icon=":material/support_agent:", width="stretch"):
-            pregunta = "Prefiero que me llame una persona"
-    pregunta = st.chat_input("Escribe aquí…", disabled=not acepto, max_chars=limites.MAX_CARACTERES) or pregunta
-    if not acepto:
-        st.caption("Para escribir, marca la casilla.")
-    if pregunta:  # límites antes de llamar al modelo (coste y abuso): un mensaje rechazado nunca llega a él
+    # Cada clic o mensaje se apunta en una cola al instante (callback) y se contesta por orden. Un mensaje solo sale de la cola
+    # cuando su turno ya está guardado: si Streamlit cancela la ejecución porque la persona pulsa otro botón mientras el modelo
+    # piensa, nada se pierde y los dos mensajes acaban contestados.
+    pendientes = st.session_state.setdefault("pendientes", [])
+    if not historial and not pendientes:
+        r1, r2, r3 = st.columns(3)
+        for col, texto in ((r1, "Necesito ayuda urgente en casa"), (r2, "Quiero saber precios"),
+                           (r3, "Tengo dudas con la Dependencia")):
+            col.button(texto, width="stretch", on_click=encolar, args=(texto,))
+    st.button("Prefiero que me llame una persona", icon=":material/support_agent:", width="stretch", on_click=encolar,
+              args=("Prefiero que me llame una persona",))
+    st.chat_input("Escribe aquí…", max_chars=limites.MAX_CARACTERES, key="chat_entrada",
+                  on_submit=lambda: encolar(st.session_state.get("chat_entrada", "")))
+
+    while pendientes:
+        pregunta = pendientes[0]
+        # límites antes de llamar al modelo (coste y abuso): un mensaje rechazado nunca llega a él
         admitido, motivo = limites.validar_mensaje(pregunta, sum(m["rol"] == "usuario" for m in historial))
         if not admitido:
             comun.nota(motivo, "neutra")
-            pregunta = None
-
-    if pregunta:
-        historial.append({"rol": "usuario", "texto": pregunta})
+            pendientes.pop(0)
+            continue
         with caja:
             st.chat_message("user").write(pregunta)
             with st.chat_message("assistant"), st.spinner("Escribiendo… (unos segundos)"):
-                try:
-                    texto, nueva = asistente.responder(limites.historial_para_el_modelo(historial), ahora)
-                except Exception:  # noqa: BLE001 · la familia nunca ve un error técnico; el detalle va al registro
-                    logging.exception("Fallo del asistente")
-                    texto, nueva = (f"Ahora mismo no puedo responder. Déjanos tu teléfono en el formulario o llámanos al "
-                                    f"{TELEFONO} a partir de las 9:00."), {}
+                texto, nueva = conversacion.turno(historial, pregunta, asistente.responder, ahora, TELEFONO)
                 st.write(texto)
-        historial.append({"rol": "asistente", "texto": texto})
+        pendientes.pop(0)  # solo después de guardar el turno
         # La ficha la escribe el modelo a partir de lo que dice la familia: se valida antes de guardarla o pintarla
         st.session_state["ficha"] = ficha = limpiar_ficha(nueva) if nueva else ficha
         # Se guarda con teléfono, o sin él si hay que pasarlo a una persona (si no, «te dejo anotada la petición» sería falso)
@@ -402,11 +406,11 @@ def chat():
         if st.button("Vista del equipo: atender la petición de borrado", icon=":material/delete:"):
             with comun.conexion() as con:
                 borrados = sum(leads.borrar(con, i) for i in st.session_state.pop("lead_ids"))
-            for k in ("historial", "ficha", "guardado"):
+            for k in ("historial", "ficha", "guardado", "pendientes"):
                 st.session_state.pop(k, None)
             comun.nota(f"Borrados {borrados} registros de esta conversación (ficha, conversación y consentimiento).", "neutra")
     if st.button("Empezar de nuevo"):
-        for k in ("historial", "ficha", "guardado", "lead_ids"):
+        for k in ("historial", "ficha", "guardado", "lead_ids", "pendientes"):
             st.session_state.pop(k, None)
         st.rerun()
 

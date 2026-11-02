@@ -15,7 +15,7 @@ km = metricas.kaplan_meier(d)
 tri = metricas.triangulo(d).drop(columns=0).dropna(how="all")  # el mes 0 siempre es 100 %
 s = km.set_index("mes")["pct_siguen"]
 
-comun.cabecera("Retención", f"{es(s.get(12, s.iloc[-1]), 0)} de cada 100 familias siguen con Qida al año",
+comun.cabecera("Retención", f"Con datos de ejemplo, {es(s.get(12, s.iloc[-1]), 0)} de cada 100 familias siguen con Qida al año",
                "marketing y Referentes Sociales",
                f"La mayoría de las bajas llega en los tres primeros meses ({es(100 - s.get(3, 100), 0)} de cada 100). "
                "Captar rápido no puede ser captar peor.")

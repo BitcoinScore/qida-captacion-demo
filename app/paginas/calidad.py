@@ -52,7 +52,7 @@ total_conv = sum(len(d) for d in datos.values())
 comun.cabecera("Calidad del asistente", conclusion, "el equipo de IA",
                "Conversaciones difíciles → reglas automáticas → otra IA como revisor automático → una persona comprueba al "
                "revisor. Así sé si el asistente responde bien antes de ponerlo delante de una familia.",
-               chip=f"Evaluación real · {es(total_conv, 0)} conversaciones con el modelo", real=True)
+               chip=f"Evaluación con el modelo · muestra pequeña ({es(total_conv, 0)} conversaciones)", real=True)
 
 if all(d.empty for d in datos.values()):
     comun.nota("Todavía no hay resultados. Ejecuta `python eval/ejecutar.py`.", "alerta")

@@ -19,7 +19,7 @@ Es una muestra seria, no un pentest: abajo se dice qué se cubrió y qué no.
 | Asistente en vivo | 39 casos adversarios (`eval/adversarios.py`): inyección, fuga del prompt, fuera de tema, urgencias, autolesión, maltrato, médico, precios, promesas, cobertura, datos, idiomas | Ver más abajo |
 | Análisis estático y dependencias | `ruff` (errores, bugs, `except` anchos, `raise from`), `bandit` (seguridad), `pip-audit` (vulnerabilidades de las dependencias fijadas) | Limpio; `pip-audit`: sin vulnerabilidades conocidas. Los 6 avisos B608 (SQL con `f"…"`) están explicados en `.bandit`: solo se interpolan marcadores `?` |
 | Clon limpio | `git archive` → entorno nuevo → `pip install -r requirements-dev.txt` → `datos/generar.py` → `pytest` | Ver `README.md` (mismo camino que seguirá quien clone) |
-| Suite automática | `pytest`: 111 pruebas (antes 28; 6 se omiten por diseño) | Todas pasan |
+| Suite automática | `pytest`: 117 pruebas (antes 28; 6 se omiten por diseño) | Todas pasan |
 
 ## Fallos encontrados y corregidos
 
@@ -41,12 +41,14 @@ Es una muestra seria, no un pentest: abajo se dice qué se cubrió y qué no.
 | 15 | 🟡 | Viaje | (Introducido y corregido durante esta revisión) una línea suelta volcaba dos tablas de datos en pantalla porque Streamlit pinta toda expresión suelta | Corregido y prueba `test_no_se_cuelan_tablas_sueltas` |
 | 13 | 🟡 | Móvil | Las tarjetas se salían de la pantalla (cifras y etiquetas) y la tabla de rentabilidad ensanchaba toda la página a 830 px | Una tarjeta por fila a ≤ 480 px; la tabla desplaza dentro de su caja |
 | 16 | 🟠 | Todas | **Tipografías desde Google Fonts**: cada visitante enviaba su IP a Google | DM Sans y DM Serif Display (OFL) servidas desde `app/static/fonts`; el navegador solo contacta con el servidor de la demo |
-| 17 | 🟠 | Chat y formulario | **Datos de salud sin consentimiento por lead, sin caducidad y sin forma de borrarlos** | `motor/leads.py`: cada lead guarda el texto y la versión que aceptó la familia y cuándo; caduca a los 30 días; borrado por id o por teléfono; botón de «petición de borrado» en la vista del equipo |
+| 17 | 🟠 | Chat y formulario | **Datos de salud sin consentimiento por lead, sin caducidad y sin forma de borrarlos** | `motor/leads.py`: cada lead guarda el texto y la versión que aceptó la familia y cuándo (en el chat, el aviso mostrado y el acto de dejar el teléfono: sin casilla que bloquee); caduca a los 30 días; borrado por id o por teléfono; botón de «petición de borrado» en la vista del equipo |
 | 18 | 🟠 | Chat y formulario | **Sin límites de uso**: un mensaje de 6.000 caracteres llegaba entero al modelo, sin tope de mensajes y con todo el historial en cada llamada; el formulario se podía enviar a máquina | `motor/limites.py`: 600 caracteres por mensaje, 30 mensajes por conversación, solo los últimos 20 al modelo, formulario con máximo de envíos y tiempo mínimo antes de enviar |
 | 19 | 🟡 | Asistente | Contestaba en español a quien escribía en inglés, catalán o gallego | Contesta en su idioma (es/ca/gl/en; otro idioma, español e inglés) sin prometer atención telefónica en ese idioma |
 | 20 | 🟡 | Todas | Salto de títulos h1→h4 | `comun.titulo()` emite h2/h3 con el mismo aspecto; axe ya no marca el orden de títulos |
 | 21 | 🟡 | Calidad y Retención | **Cajas de notas desalineadas** (cada columna con su alto) | `comun.notas()`: una fila en rejilla, todas de la misma altura |
 | 22 | 🟠 | Caso de negocio | **La prueba A/B era inviable tal como se planteaba**: la tarjeta decía «1.925 familias por grupo» sin decir que son ~12 meses con las cinco ciudades (entran ~325 familias de noche al mes) y la nota hablaba de hacerla «en una ciudad» (años). El cálculo estadístico era correcto; el planteamiento, no | La tarjeta y su ventana muestran la duración (5 ciudades y una sola); la propuesta pasa a dos pasos: (1) comprobar el mecanismo (llamada en la primera hora; bastan unas decenas de familias) y (2) A/B con todas las ciudades y una mejora realista (~8 puntos: 3-4 meses) |
+| 24 | 🟠 | Chat | **El chat no dejaba escribir hasta marcar una casilla de consentimiento**, también en una urgencia | Sin casilla: aviso de privacidad visible, 112 fijo, campo activo desde el primer segundo y consentimiento ligado al acto de dejar el teléfono (prueba `test_el_chat_no_exige_casilla_para_escribir`) |
+| 25 | 🟠 | Chat | **Al pulsar varios botones mientras el asistente pensaba, los botones desaparecían y la pregunta se quedaba sin respuesta**: Streamlit cancela la ejecución en curso y la pregunta ya estaba guardada sin su respuesta (y el siguiente clic se perdía) | `motor/conversacion.turno` guarda pregunta y respuesta juntas y solo al tener respuesta; los mensajes entran en una cola y se contestan por orden. Probado en el navegador pulsando un botón y escribiendo otro mensaje mientras respondía; con 3 pruebas unitarias |
 | 23 | 🟡 | Asistente | Dijo «sin compromiso» en 2 de 39 respuestas pese a la regla (no lo había hecho en la primera tanda: el modelo no es determinista) | Refuerzo en el prompt y **barrera en código** (`asistente.reglas_duras`) que lo sustituye antes de enseñarlo, con prueba |
 
 ## El asistente frente a lo que probaría un equipo de IA
@@ -86,6 +88,6 @@ está arriba como fallos 16–21.
 ## Cómo repetirlo
 
 ```bash
-.venv/Scripts/python -m pytest -q                       # 111 pruebas, sin modelo
+.venv/Scripts/python -m pytest -q                       # 117 pruebas, sin modelo
 QIDA_MODO=vivo .venv/Scripts/python -m eval.adversarios # 39 casos adversarios con el modelo (≈4 min); resultados en eval/
 ```
