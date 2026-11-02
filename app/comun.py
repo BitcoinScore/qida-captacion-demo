@@ -45,27 +45,31 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {{color: {GRIS_TEXTO} !important;}}
 .kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;
   box-sizing: border-box; display: flex; flex-direction: column;}}
-.fila-kpi {{display: grid; gap: 12px; align-items: stretch; margin-bottom: 4px;}}
-@media (max-width: 1400px) {{.fila-kpi.ancha {{grid-template-columns: repeat(3, 1fr) !important; --escala: 3.6 !important; --tam-valor: 3.2rem !important;}}}}
-@media (max-width: 900px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
+.fila-kpi-caja {{container-type: inline-size; margin-bottom: 4px;}}
+.fila-kpi {{display: grid; gap: 12px; align-items: stretch;}}
+/* Seis tarjetas solo caben en una fila si hay sitio de verdad (se mide el ancho del contenido, no el de la ventana) */
+@container (max-width: 1250px) {{.fila-kpi.ancha {{grid-template-columns: repeat(3, 1fr) !important;}}}}
+@container (max-width: 640px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
 .kpi .cabeza {{display: flex; align-items: center; gap: 10px; min-height: 38px;}}
 .kpi .icono {{flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
   border-radius: 10px; background: {FONDO}; color: {VERDE}; font-size: 21px;
   font-family: 'Material Symbols Rounded' !important; font-variation-settings: 'FILL' 0, 'wght' 500;}}
 .kpi.alerta .icono {{background: #fff1ea; color: {NARANJA_TEXTO};}}
 .kpi .etiqueta {{line-height: 1.3; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
-.kpi .valor {{white-space: nowrap; font-size: clamp(1.9rem, calc(var(--escala, 3.4) * 1vw), var(--tam-valor, 2.4rem)); font-weight: 700; color: #1F2B2A; line-height: 1.1; margin: 6px 0 4px;
+.kpi .linea {{display: flex; flex-wrap: wrap; align-items: center; column-gap: 10px; row-gap: 2px; margin: 8px 0 6px;}}
+.kpi .valor {{white-space: nowrap; font-size: var(--tam-valor, 2.4rem); font-weight: 700; color: #1F2B2A; line-height: 1.1;
   letter-spacing: -.01em;}}
-.kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
+.kpi .tend {{font-size: .82rem; color: {GRIS_TEXTO}; margin-bottom: 2px;}}
+.kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO}; margin-top: auto;}}
 .kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
 .kpi.alerta .valor, .kpi.mal .valor {{color: {NARANJA_TEXTO};}}
 .kpi.bien .valor {{color: {VERDE_TEXTO};}}
-.kpi.provisional .valor {{color: #8A9A99;}}
-.kpi .estado {{display: inline-block; font-size: .72rem; font-weight: 600; border-radius: 99px; padding: 1px 8px; margin-top: 2px;}}
+.kpi .estado {{display: inline-block; white-space: nowrap; font-size: .74rem; font-weight: 600; border-radius: 99px;
+  padding: 2px 9px;}}
 .kpi.bien .estado {{background: #e6f2f1; color: {VERDE_TEXTO};}}
 .kpi.mal .estado, .kpi.alerta .estado {{background: #fff1ea; color: {NARANJA_TEXTO};}}
-.kpi.provisional .estado {{background: #EEF3F3; color: {GRIS_TEXTO};}}
+.kpi.curso .estado {{background: #EEF3F3; color: {GRIS_TEXTO};}}
 .kpi .bien {{color: {VERDE_TEXTO}; font-weight: 700;}}
 .kpi .mal {{color: {NARANJA_TEXTO}; font-weight: 700;}}
 .chip {{display: inline-block; background: {FONDO}; border: 1px solid {BORDE}; color: {VERDE}; border-radius: 99px;
@@ -125,14 +129,15 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
     flecha = ""
     if tendencia is not None and abs(tendencia) >= 0.05:
         mejora = (tendencia > 0) == mejor_si_sube
-        flecha = (f"<span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
-                  f"{es(abs(tendencia))}{unidad_tendencia}</span> {frente} · ")
+        flecha = (f"<div class='tend'><span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
+                  f"{es(abs(tendencia))}{unidad_tendencia}</span> {frente}</div>")
     simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
-    estado = "alerta" if alerta else estado  # bien · mal · alerta · provisional · None (sin objetivo: cifra en negro)
-    chip = f"<div><span class='estado'>{texto_estado}</span></div>" if estado and texto_estado else ""
+    estado = "alerta" if alerta else estado  # bien · mal · alerta · curso · None (sin objetivo o en curso: cifra en negro)
+    chip = f"<span class='estado'>{texto_estado}</span>" if estado and texto_estado else ""
     col.markdown(f"<div class='kpi{' ' + estado if estado else ''}'><div class='cabeza'>{simbolo}"
                  f"<div class='etiqueta'>{etiqueta}</div></div>"
-                 f"<div class='valor'>{valor}</div>{chip}<div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
+                 f"<div class='linea'><div class='valor'>{valor}</div>{chip}</div>{flecha}<div class='sub'>{sub}</div></div>",
+                 unsafe_allow_html=True)
 
 
 def _asegurar_base() -> None:
@@ -216,8 +221,8 @@ class Fila:
     def pintar(self) -> None:
         n = len(self.tarjetas)
         # Cuantas menos tarjetas, más grande la cifra (si no, la caja se queda vacía)
-        tam = {1: "3.8rem", 2: "3.6rem", 3: "3.4rem", 4: "3.1rem", 5: "2.9rem"}.get(n, "2.8rem")
-        escala = {1: 6, 2: 5, 3: 3.6, 4: 3, 5: 2.6}.get(n, 2.3)  # la cifra se ajusta al ancho: nunca se parte
-        st.markdown(f"<div class='fila-kpi{' ancha' if n >= 5 else ''}' style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam};--escala:{escala};"
-                    "'>" + "".join(self.tarjetas) + "</div>", unsafe_allow_html=True)
+        tam = {1: "3.6rem", 2: "3.4rem", 3: "3rem", 4: "2.7rem"}.get(n, "2.6rem")
+        st.markdown(f"<div class='fila-kpi-caja'><div class='fila-kpi{' ancha' if n >= 5 else ''}' "
+                    f"style='grid-template-columns:repeat({n}, 1fr);--tam-valor:{tam}'>" + "".join(self.tarjetas) + "</div></div>",
+                    unsafe_allow_html=True)
 

@@ -46,7 +46,7 @@ def embudo_viaje(etapas: list[dict]) -> go.Figure:
             w2 = ancho[k + 1]
             fig.add_shape(type="path", path=f"M {-w} {y1} L {w} {y1} L {w2} {y1 - hueco} L {-w2} {y1 - hueco} Z",
                           fillcolor="rgba(0,64,57,0.06)", line=dict(width=0))
-        paso = f"{es(100 * e['valor'] / etapas[k - 1]['valor'], 0)} % del paso anterior · " if k else ""
+        paso = f"{es(100 * e['valor'] / etapas[k - 1]['valor'], 0)} % del paso anterior · " if k and etapas[k - 1]['valor'] else ""
         acumulado = f"{es(100 * e['valor'] / maximo)} % del total"
         fig.add_annotation(
             x=-1.05, y=(y0 + y1) / 2, showarrow=False, xanchor="right", align="right",

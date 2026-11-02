@@ -84,21 +84,23 @@ def kpis_mes(con: sqlite3.Connection, mes: str) -> dict:
     }
 
 
-def kpis_periodo(con: sqlite3.Connection, desde: str, hasta: str) -> dict:
+def kpis_periodo(con: sqlite3.Connection, desde: str, hasta: str, corte: str | None = None) -> dict:
     """KPIs de las familias que pidieron ayuda entre `desde` y `hasta` (AAAA-MM-DD, ambos incluidos).
 
     `madura` dice si todas han tenido ya 30 días para contratar; si no, conversión y coste por contrato son provisionales.
-    El gasto mensual se reparte por días.
+    El gasto mensual se reparte por días. `corte` (AAAA-MM-DD) cuenta solo lo ocurrido hasta ese día: sirve para ver el
+    periodo anterior con la misma antigüedad que el actual y compararlos con justicia.
     """
+    tope = (corte or "9999-12-31") + "T23:59"
     familias, noche, llamadas, rapidas, valoraciones, contratos = con.execute(
         """SELECT COUNT(*), SUM(f.fuera_horario), COUNT(ll.lead_id),
                   SUM(CASE WHEN (julianday(ll.fecha_primera_llamada) - julianday(f.fecha_entrada)) * 1440 < 60 THEN 1 ELSE 0 END),
                   COUNT(v.lead_id), COUNT(a.lead_id)
            FROM familias f
-           LEFT JOIN llamadas_30d ll    ON ll.lead_id = f.id
-           LEFT JOIN valoraciones_30d v ON v.lead_id = f.id
-           LEFT JOIN altas_30d a        ON a.lead_id = f.id
-           WHERE date(f.fecha_entrada) BETWEEN ? AND ?""", (desde, hasta)).fetchone()
+           LEFT JOIN llamadas_30d ll    ON ll.lead_id = f.id AND ll.fecha_primera_llamada <= :tope
+           LEFT JOIN valoraciones_30d v ON v.lead_id = f.id AND v.fecha <= :tope
+           LEFT JOIN altas_30d a        ON a.lead_id = f.id AND a.fecha_alta <= :tope
+           WHERE date(f.fecha_entrada) BETWEEN :desde AND :hasta""", {"desde": desde, "hasta": hasta, "tope": tope}).fetchone()
     d0, d1 = pd.Timestamp(desde), pd.Timestamp(hasta)
     gasto = 0.0
     for mes, importe in con.execute("SELECT mes, SUM(importe) FROM gasto GROUP BY mes"):
@@ -114,6 +116,8 @@ def kpis_periodo(con: sqlite3.Connection, desde: str, hasta: str) -> dict:
         "valoracion": 100 * valoraciones / familias if familias else 0,
         "conversion": 100 * contratos / familias if familias else 0,
         "contratos": contratos,
+        "contactadas": llamadas,
+        "valoraciones": valoraciones,
         "cac": gasto / contratos if contratos else float("nan"),
         "madura": (pd.Timestamp(CORTE) - d1).days >= 30,
         "dias": (d1 - d0).days + 1,
