@@ -54,12 +54,18 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
   font-family: 'Material Symbols Rounded' !important; font-variation-settings: 'FILL' 0, 'wght' 500;}}
 .kpi.alerta .icono {{background: #fff1ea; color: {NARANJA_TEXTO};}}
 .kpi .etiqueta {{line-height: 1.3; font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
-.kpi .valor {{white-space: nowrap; font-size: clamp(1.9rem, calc(var(--escala, 3.4) * 1vw), var(--tam-valor, 2.4rem)); font-weight: 700; color: {VERDE}; line-height: 1.1; margin: 6px 0 4px;
+.kpi .valor {{white-space: nowrap; font-size: clamp(1.9rem, calc(var(--escala, 3.4) * 1vw), var(--tam-valor, 2.4rem)); font-weight: 700; color: #1F2B2A; line-height: 1.1; margin: 6px 0 4px;
   letter-spacing: -.01em;}}
 .kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
 .kpi .valor small {{font-size: .4em; font-weight: 600; color: {GRIS_TEXTO}; letter-spacing: 0; margin-left: .25em;}}
 .kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
-.kpi.alerta .valor {{color: {NARANJA_TEXTO};}}
+.kpi.alerta .valor, .kpi.mal .valor {{color: {NARANJA_TEXTO};}}
+.kpi.bien .valor {{color: {VERDE_TEXTO};}}
+.kpi.provisional .valor {{color: #8A9A99;}}
+.kpi .estado {{display: inline-block; font-size: .72rem; font-weight: 600; border-radius: 99px; padding: 1px 8px; margin-top: 2px;}}
+.kpi.bien .estado {{background: #e6f2f1; color: {VERDE_TEXTO};}}
+.kpi.mal .estado, .kpi.alerta .estado {{background: #fff1ea; color: {NARANJA_TEXTO};}}
+.kpi.provisional .estado {{background: #EEF3F3; color: {GRIS_TEXTO};}}
 .kpi .bien {{color: {VERDE_TEXTO}; font-weight: 700;}}
 .kpi .mal {{color: {NARANJA_TEXTO}; font-weight: 700;}}
 .chip {{display: inline-block; background: {FONDO}; border: 1px solid {BORDE}; color: {VERDE}; border-radius: 99px;
@@ -110,7 +116,7 @@ def nota(texto: str, tipo: str = "clave") -> None:
 
 def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None = None, mejor_si_sube: bool = True,
         unidad_tendencia: str = " p. p.", alerta: bool = False, icono: str | None = None,
-        frente: str = "frente al periodo anterior") -> None:
+        frente: str = "frente al periodo anterior", estado: str | None = None, texto_estado: str = "") -> None:
     """Tarjeta de KPI: etiqueta, valor grande, variación frente al mes anterior y contexto.
 
     La variación se colorea según mejore o empeore; `alerta=True` marca la tarjeta entera cuando el valor está lejos del
@@ -122,9 +128,11 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
         flecha = (f"<span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
                   f"{es(abs(tendencia))}{unidad_tendencia}</span> {frente} · ")
     simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
-    col.markdown(f"<div class='kpi{' alerta' if alerta else ''}'><div class='cabeza'>{simbolo}"
+    estado = "alerta" if alerta else estado  # bien · mal · alerta · provisional · None (sin objetivo: cifra en negro)
+    chip = f"<div><span class='estado'>{texto_estado}</span></div>" if estado and texto_estado else ""
+    col.markdown(f"<div class='kpi{' ' + estado if estado else ''}'><div class='cabeza'>{simbolo}"
                  f"<div class='etiqueta'>{etiqueta}</div></div>"
-                 f"<div class='valor'>{valor}</div><div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
+                 f"<div class='valor'>{valor}</div>{chip}<div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
 
 
 def _asegurar_base() -> None:

@@ -38,29 +38,50 @@ mes_completo = n_meses_periodo == 1
 PRIMER_DATO = date(2025, 5, 1)
 comparable = a_desde >= PRIMER_DATO  # si el periodo anterior cae antes de los datos, compararlo engañaría
 
-with comun.conexion() as con:
-    familias, contactadas, valoraciones, contratos, contactos, desde, hasta, n_meses = con.execute(
-        """SELECT COUNT(*), COUNT(ll.lead_id), COUNT(v.lead_id), COUNT(a.lead_id),
-                  (SELECT COUNT(*) FROM leads WHERE fecha_entrada < '2026-10-01'),
-                  MIN(c.fecha_entrada), MAX(c.fecha_entrada), COUNT(DISTINCT substr(c.fecha_entrada, 1, 7))
-           FROM cohorte c
+# Conversión y coste solo con familias que ya han tenido 30 días para contratar (la parte madura del periodo)
+LIMITE_MADURO = ULTIMO_DATO - timedelta(days=31)  # 30 sep: igual que la vista `cohorte`
+maduro_hasta = min(p_hasta, LIMITE_MADURO)
+hay_maduro = (maduro_hasta - p_desde).days + 1 >= min(7, duracion)  # al menos una semana madura
+# El embudo usa la parte madura del periodo; si no la hay (p. ej. octubre), el último tramo maduro de la misma duración
+if hay_maduro:
+    e_desde, e_hasta, embudo_propio = p_desde, maduro_hasta, True
+else:
+    e_desde, e_hasta, embudo_propio = (meses_atras(p_desde, n_meses_periodo) if n_meses_periodo else
+                                       LIMITE_MADURO - timedelta(days=duracion - 1)), LIMITE_MADURO, False
+
+
+def embudo(con, desde: date, hasta: date):
+    """Familias que pidieron ayuda entre `desde` y `hasta` y qué hicieron en sus 30 días, total y por franja horaria."""
+    rango = (desde.isoformat(), hasta.isoformat())
+    base = """FROM cohorte c
            LEFT JOIN llamadas_30d ll    ON ll.lead_id = c.id
            LEFT JOIN valoraciones_30d v ON v.lead_id = c.id
-           LEFT JOIN altas_30d a        ON a.lead_id = c.id"""
-    ).fetchone()
-    franjas = {fuera: (n, val, con_) for fuera, n, val, con_ in con.execute(
-        """SELECT c.fuera_horario, COUNT(*), COUNT(v.lead_id), COUNT(a.lead_id) FROM cohorte c
-           LEFT JOIN valoraciones_30d v ON v.lead_id = c.id LEFT JOIN altas_30d a ON a.lead_id = c.id
-           GROUP BY c.fuera_horario""")}
+           LEFT JOIN altas_30d a        ON a.lead_id = c.id
+           WHERE date(c.fecha_entrada) BETWEEN ? AND ?"""
+    total = con.execute(f"SELECT COUNT(*), COUNT(ll.lead_id), COUNT(v.lead_id), COUNT(a.lead_id), SUM(c.contactos) {base}",
+                        rango).fetchone()
+    franjas = {f: (n, val, alt) for f, n, val, alt in con.execute(
+        f"SELECT c.fuera_horario, COUNT(*), COUNT(v.lead_id), COUNT(a.lead_id) {base} GROUP BY c.fuera_horario", rango)}
+    return total, franjas
+
+
+with comun.conexion() as con:
+    (familias, contactadas, valoraciones, contratos, contactos), franjas_e = embudo(con, e_desde, e_hasta)
+    # El caso de negocio usa todo el histórico maduro: con un mes solo, el tamaño del A/B saldría con mucho ruido
+    _, franjas = embudo(con, PRIMER_DATO, LIMITE_MADURO)
+    n_meses = (LIMITE_MADURO.year - PRIMER_DATO.year) * 12 + LIMITE_MADURO.month - PRIMER_DATO.month + 1
     km = metricas.kaplan_meier(metricas.duraciones(con)).set_index("mes")["pct_siguen"]
     act = metricas.kpis_periodo(con, p_desde.isoformat(), p_hasta.isoformat())
     ant = metricas.kpis_periodo(con, a_desde.isoformat(), a_hasta.isoformat())
+    if hay_maduro:
+        act_m = metricas.kpis_periodo(con, p_desde.isoformat(), maduro_hasta.isoformat())
+        ant_m = metricas.kpis_periodo(con, a_desde.isoformat(), (a_desde + (maduro_hasta - p_desde)).isoformat())
     eco = metricas.economia_por_canal(con, comun.CIUDADES)
 r3, r12 = km[3] / 100, km[12] / 100
 ltv_medio = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["contratos"].sum()
 ltv_cac = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["gasto_total"].sum()
 (n_dia, val_dia, con_dia), (n_noche, val_noche, con_noche) = franjas[0], franjas[1]
-pct_noche = 100 * n_noche / familias
+pct_noche = 100 * franjas_e.get(1, (0,))[0] / familias if familias else 0  # del tramo del embudo
 tasa_dia, tasa_noche = val_dia / n_dia, val_noche / n_noche  # llegan a valoración
 
 comun.cabecera("Viaje de la familia", "La mayor fuga está entre la primera llamada y la valoración",
@@ -86,7 +107,9 @@ st.markdown(f"<div class='seccion'>{titulo}</div>", unsafe_allow_html=True)
 if act["familias"] == 0:
     comun.nota("No hay familias en ese periodo. Elige otras fechas.", "alerta")
     st.stop()
-provisional = not act["madura"]
+provisional = not hay_maduro          # ninguna familia del periodo ha tenido aún 30 días para contratar
+parcial = hay_maduro and maduro_hasta < p_hasta
+OBJ_LLAMADAS, OBJ_CONVERSION, OBJ_COSTE = 50, 15, 400  # objetivos de ejemplo
 
 
 def var(actual, anterior):
@@ -94,26 +117,44 @@ def var(actual, anterior):
     return actual - anterior if comparable else None
 
 
+def estado(valor, objetivo, mejor_si_sube=True):
+    cumple = valor >= objetivo if mejor_si_sube else valor <= objetivo
+    return ("bien", "cumple el objetivo") if cumple else ("mal", "por debajo del objetivo" if mejor_si_sube else "por encima del objetivo")
+
+
 frente = {1: "frente al mes anterior", 12: "frente al año anterior"}.get(n_meses_periodo, "frente al periodo anterior")
 fila = comun.Fila()
 k = [fila] * 6
 comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
-          100 * (act["familias"] / ant["familias"] - 1) if comparable and ant["familias"] else None, unidad_tendencia=" %", icono="groups", frente=frente)
+          100 * (act["familias"] / ant["familias"] - 1) if comparable and ant["familias"] else None, unidad_tendencia=" %",
+          icono="groups", frente=frente)
 comun.kpi(k[1], "De noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
           var(act["noche"], ant["noche"]), mejor_si_sube=False, icono="dark_mode", frente=frente)
-comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", "objetivo: 50 %",
-          var(act["rapidas"], ant["rapidas"]), alerta=act["rapidas"] < 25, icono="phone_in_talk", frente=frente)
-comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %",
-          "provisional: aún pueden contratar" if provisional else "en 30 días · objetivo: 15 %",
-          None if provisional else var(act["conversion"], ant["conversion"]), icono="handshake", frente=frente)
-comun.kpi(k[4], "Coste por familia", es(act["cac"], 0, " €"),
-          "provisional: faltan contratos por llegar" if provisional else "CAC total del periodo",
-          None if provisional else var(act["cac"], ant["cac"]), mejor_si_sube=False, unidad_tendencia=" €", icono="euro", frente=frente)
+e = estado(act["rapidas"], OBJ_LLAMADAS)
+comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", f"objetivo: {OBJ_LLAMADAS} %",
+          var(act["rapidas"], ant["rapidas"]), alerta=act["rapidas"] < OBJ_LLAMADAS / 2, estado=e[0],
+          texto_estado="muy lejos del objetivo" if act["rapidas"] < OBJ_LLAMADAS / 2 else e[1],
+          icono="phone_in_talk", frente=frente)
+nota_maduro = (f"familias hasta el {maduro_hasta.day} {comun.MESES[maduro_hasta.month - 1][:3]} (las demás aún pueden contratar)"
+               if parcial else "en 30 días")
+if provisional:
+    comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %", "aún pueden contratar: no se compara", estado="provisional",
+              texto_estado="provisional", icono="handshake")
+    comun.kpi(k[4], "Coste por familia", es(act["cac"], 0, " €"), "faltan contratos por llegar: no se compara",
+              estado="provisional", texto_estado="provisional", icono="euro")
+else:
+    e = estado(act_m["conversion"], OBJ_CONVERSION)
+    comun.kpi(k[3], "Contratan", f"{es(act_m['conversion'])} %", f"{nota_maduro} · objetivo: {OBJ_CONVERSION} %",
+              var(act_m["conversion"], ant_m["conversion"]), estado=e[0], texto_estado=e[1], icono="handshake", frente=frente)
+    e = estado(act_m["cac"], OBJ_COSTE, mejor_si_sube=False)
+    comun.kpi(k[4], "Coste por familia", es(act_m["cac"], 0, " €"), f"CAC total · objetivo: menos de {OBJ_COSTE} €",
+              var(act_m["cac"], ant_m["cac"]), mejor_si_sube=False, unidad_tendencia=" €", estado=e[0], texto_estado=e[1],
+              icono="euro", frente=frente)
 comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"histórico · cada euro vuelve ×{es(ltv_cac)}", icono="favorite")
 fila.pintar()
-st.caption("Objetivos de ejemplo. Verde: mejora; naranja: empeora o está lejos del objetivo. "
-           + ("Las familias de los últimos 30 días del periodo aún pueden contratar: conversión y coste son provisionales y no se "
-              "comparan. " if provisional else "")
+st.caption("Objetivos de ejemplo. Color de la cifra: verde = cumple su objetivo; naranja = no lo cumple (con borde, si está muy "
+           "lejos); gris = provisional; negro = sin objetivo. Flechas: frente al periodo anterior (verde mejora, naranja empeora). "
+           + ("Contratan y coste: solo con las familias que ya han tenido 30 días para contratar. " if parcial else "")
            + "La permanencia es histórica (hacen falta meses para medirla).")
 
 # ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -137,8 +178,12 @@ ETAPAS = [
     {"nombre": "Siguen al año", "valor": round(contratos * r12), "estimado": True},
 ]
 comun.grafico(graficos.embudo_viaje(ETAPAS))
-st.caption(f"Familias que pidieron ayuda de {comun.mes_es(desde)} a {comun.mes_es(hasta)}; cada paso cuenta si ocurre en "
-           "los 30 días siguientes. Las dos últimas etapas (trazo discontinuo) son estimaciones con la curva de permanencia.")
+tramo = f"del {corta(e_desde)} al {corta(e_hasta)}"
+st.caption((f"Familias que pidieron ayuda {tramo}" if embudo_propio else
+            f"El periodo elegido aún no tiene familias con 30 días para contratar: se muestra el tramo anterior, {tramo}")
+           + ("" if not embudo_propio or e_hasta == p_hasta else " (las posteriores aún pueden contratar)")
+           + "; cada paso cuenta si ocurre en los 30 días siguientes. Las dos últimas etapas (trazo discontinuo) son "
+           "estimaciones con la curva de permanencia.")
 
 # ── 3. El viaje, etapa a etapa (service blueprint) ────────────────────────────────────────────────────────────
 st.markdown("#### El viaje, etapa a etapa")
@@ -194,6 +239,8 @@ st.markdown(
 
 # ── 4. Caso de negocio y cómo se probaría ────────────────────────────────────────────────────────────────────────
 st.markdown("#### Qué valdría arreglar la noche, y cómo lo probaría")
+st.caption("Con todo el histórico maduro (mayo de 2025 – septiembre de 2026), no con el periodo elegido: un solo mes daría "
+           "una estimación con demasiado ruido.")
 noche_mes = n_noche / n_meses
 extra_mes = noche_mes * (con_dia / n_dia - con_noche / n_noche)
 # Tamaño del A/B: familias de noche por grupo para detectar la diferencia de llegada a valoración (95 %, potencia 80 %)
@@ -217,7 +264,9 @@ with st.expander("Cómo se mide (definiciones)"):
         f"""
 - **Familias, no contactos:** {es(contactos, 0)} contactos del CRM corresponden a {es(familias, 0)} familias; las que entraron por
   dos canales se unen por teléfono. **Atribución:** último contacto antes del resultado.
-- **Cohorte madura:** se deja fuera octubre de 2026, porque esas familias aún no han tenido tiempo de contratar.
+- **Cohorte madura:** el embudo, la conversión y el coste solo cuentan familias que entraron hasta el 30 de septiembre de 2026;
+  las posteriores aún no han tenido 30 días para contratar.
+- **Caso de negocio:** con todo el histórico maduro (mayo de 2025 – septiembre de 2026), para que el A/B no dependa del periodo elegido.
 - **Ventana de conversión:** cada paso cuenta si ocurre en los 30 días siguientes a pedir ayuda.
 - **Siguen a 3 y 12 meses (estimado):** contratos × permanencia de Kaplan-Meier ({es(100 * r3, 0)} % y {es(100 * r12, 0)} %).
 - **Retorno del conjunto:** valor de 12 meses de todos los contratos ÷ gasto total (margen bruto supuesto del 30 %).
