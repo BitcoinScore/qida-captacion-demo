@@ -33,7 +33,9 @@ def test_economia_por_canal(con):
     eco = metricas.economia_por_canal(con, CIUDADES)
     pago = eco[eco["gasto_medios"] > 0]
     assert (pago["cac_pago"] > 0).all()
-    assert (eco["cac_combinado"] >= eco["cac_pago"].fillna(0)).all()
+    ambos = eco.dropna(subset=["cac_combinado", "cac_pago"])
+    assert (ambos["cac_combinado"] >= ambos["cac_pago"]).all()
+    assert not eco[["cac_combinado", "ltv_cac"]].isin([float("inf")]).any().any()  # nunca «inf»
     assert (eco["ic_bajo"] <= eco["pct"]).all() and (eco["pct"] <= eco["ic_alto"]).all()
 
 

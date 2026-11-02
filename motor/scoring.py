@@ -72,14 +72,6 @@ def _legible(variable: str) -> str:
     return nombres.get(variable, variable.split(": ", 1)[-1])
 
 
-def deciles(test: pd.DataFrame) -> pd.DataFrame:
-    t = test.copy()
-    t["decil"] = pd.qcut(t["score"].rank(method="first", ascending=False), 10, labels=range(1, 11))
-    tabla = t.groupby("decil", observed=True).agg(leads=("alta", "size"), altas=("alta", "sum"), score_medio=("score", "mean"))
-    tabla["pct_alta"] = (100 * tabla["altas"] / tabla["leads"]).round(1)
-    tabla["score_medio"] = (100 * tabla["score_medio"]).round(1)
-    return tabla.reset_index()
-
 
 def ganancia(test: pd.DataFrame) -> pd.DataFrame:
     """Curva de ganancia: llamando al X % mejor puntuado, ¿qué % de todos los contratos se cubre?"""

@@ -33,3 +33,12 @@ def test_todas_las_consultas_sql_funcionan(con):
         consulta = texto.replace("{ciudades}", ",".join("?" * len(CIUDADES)))
         filas = con.execute(consulta, CIUDADES * texto.count("{ciudades}")).fetchall()
         assert filas, fichero.name
+
+
+def test_base_vacia_se_regenera(tmp_path, monkeypatch):
+    import comun
+    vacia = tmp_path / "crm.db"
+    vacia.write_bytes(b"")
+    monkeypatch.setattr(comun, "DB", vacia)
+    with comun.conexion() as c:
+        assert c.execute("SELECT COUNT(*) FROM familias").fetchone()[0] == 15000

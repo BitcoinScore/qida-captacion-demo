@@ -2,23 +2,26 @@
 
 Auditada en docs/auditoria-web-familia.md: IA declarada, privacidad antes de recoger datos, 112 visible, formulario que
 funciona, teléfono y horario, señales de confianza, coherencia con el anuncio, respuestas rápidas y salida a una persona.
-Marca, teléfono, servicios y cifras públicas tomados de qida.es (02-11-2026). No es la web oficial.
+Marca, teléfono, servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026). No es la web oficial.
 """
 import base64
 import json
+import logging
 import re
 from datetime import datetime, time
 
 import streamlit as st
 
 import comun
-from motor import asistente
-from motor import llm
-from motor.llm import ErrorModelo
+from motor import asistente, llm
 
 TELEFONO = "635 704 124"  # el que publica qida.es
-PRIVACIDAD = ("Usaremos tus datos solo para llamarte y preparar tu presupuesto. No hace falta que nos cuentes detalles "
-              "médicos. Puedes pedir que los borremos cuando quieras. [Política de privacidad](#)")
+SERVICIOS = ["Cuidadora por horas", "Cuidadora interna", "Fines de semana", "Cuidadora nocturna", "Aún no lo sé"]
+CASILLA = "Acepto que Qida use mis datos para llamarme y preparar el presupuesto."
+PRIVACIDAD = ("No hace falta que nos cuentes detalles médicos. Puedes pedir que borremos tus datos cuando quieras. "
+              "Política de privacidad (en la web real).")
+# Festivos nacionales de referencia (cada comunidad tiene los suyos; los locales no están)
+FESTIVOS = {(1, 1), (1, 6), (5, 1), (8, 15), (10, 12), (11, 1), (12, 6), (12, 8), (12, 25)}
 LOGO_B64 = base64.b64encode(comun.LOGO.read_bytes()).decode() if comun.LOGO.exists() else ""
 # El logotipo no va en el repositorio (marca de terceros): sin él, el nombre en la tipografía de los títulos.
 MARCA = (f"<img src='data:image/png;base64,{LOGO_B64}' height='38' alt='Qida'>" if LOGO_B64 else
@@ -27,18 +30,22 @@ MARCA = (f"<img src='data:image/png;base64,{LOGO_B64}' height='38' alt='Qida'>" 
 st.markdown(
     f"""
 <style>
+.block-container {{padding-bottom: 6rem;}}
 .st-key-boton-chat {{position: fixed; right: 28px; bottom: 28px; z-index: 999; width: auto !important;}}
 .st-key-boton-chat button {{border-radius: 2rem !important; padding: .75rem 1.3rem; background: {comun.VERDE} !important;
   color: white !important; border: 0; box-shadow: 0 8px 24px rgba(0,64,57,.28); font-weight: 600;}}
 .cab {{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.8rem; padding:.2rem 0 .9rem;
   border-bottom:1px solid {comun.BORDE}; margin-bottom:1rem}}
-.cab .tel {{color:{comun.VERDE}; font-weight:700}}
+.cab a.tel {{color:{comun.VERDE}; font-weight:700; text-decoration:none}}
 .cab .estado {{font-size:.85rem; padding:2px 10px; border-radius:99px}}
 .hero {{background:{comun.FONDO}; border-radius:24px; padding:2.4rem 2.6rem; margin-bottom:1rem}}
 .hero h1 {{margin:0 0 .5rem; font-size:2.6rem; line-height:1.1}}
 .hero .bajada {{font-size:1.15rem; color:#4d5d5c}}
-.precio {{display:inline-block; margin-top:1rem; background:{comun.VERDE}; color:white; font-weight:700; border-radius:99px;
-  padding:.4rem 1rem}}
+.acciones {{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem}}
+.boton {{display:inline-block; border-radius:99px; padding:.5rem 1.1rem; font-weight:700; text-decoration:none !important}}
+.boton.lleno {{background:{comun.VERDE}; color:white !important}}
+.boton.vacio {{border:2px solid {comun.VERDE}; color:{comun.VERDE} !important; background:white}}
+.precio {{display:inline-block; margin-top:.9rem; color:{comun.VERDE}; font-weight:700}}
 .confianza {{display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; margin:.2rem 0 1.4rem}}
 .confianza div {{flex:1; min-width:150px; border:1px solid {comun.BORDE}; border-radius:14px; padding:.7rem 1rem; color:#4d5d5c}}
 .confianza b {{display:block; font-size:1.5rem; color:{comun.VERDE}}}
@@ -48,6 +55,11 @@ st.markdown(
 .paso .n {{display:inline-block; width:2.1rem; height:2.1rem; line-height:2.1rem; border-radius:99px; background:{comun.VERDE};
   color:white; font-weight:700}}
 .aviso-noche {{background:#fff4ef; border:1px solid #f4c3b0; color:#7a3418; border-radius:14px; padding:.8rem 1rem;}}
+@media (max-width: 640px) {{
+  .hero {{padding:1.4rem 1.3rem}} .hero h1 {{font-size:2rem}}
+  .cab img, .cab .marca-texto {{display:none}}  /* en móvil el logotipo ya está en la barra superior */
+  .st-key-boton-chat {{right:14px; bottom:14px}}
+}}
 </style>
 """,
     unsafe_allow_html=True,
@@ -55,14 +67,27 @@ st.markdown(
 
 with st.sidebar:
     st.markdown("**Control de la demo** · simular cuándo entra la familia")
-    dia = st.date_input("Día", datetime(2026, 11, 3))
+    dia = st.date_input("Día", datetime(2026, 11, 3), format="DD/MM/YYYY")
     hora = st.time_input("Hora", time(23, 10))
+
+
+def horario(momento: datetime) -> tuple[bool, str, str]:
+    """(¿abierto?, horario del día, cuándo llamamos). Fines de semana y festivos: de 9:00 a 18:00."""
+    reducido = momento.weekday() >= 5 or (momento.month, momento.day) in FESTIVOS
+    cierre = 18 if reducido else 20
+    abierto = 9 <= momento.hour < cierre
+    franja = f"9:00–{cierre}:00 ({'fines de semana y festivos' if reducido else 'de lunes a viernes'})"
+    if abierto:
+        cuando = "en menos de 24 horas, dentro del horario de atención"
+    elif momento.hour < 9:
+        cuando = "hoy a partir de las 9:00"
+    else:
+        cuando = "mañana a partir de las 9:00"
+    return abierto, franja, cuando
+
+
 ahora = datetime.combine(dia, hora)
-finde = ahora.weekday() >= 5
-abierto = (9 <= ahora.hour < (18 if finde else 20))
-horario = "9:00–18:00" if finde else "9:00–20:00"
-cuando_llamamos = "hoy, en menos de 24 h" if abierto else (
-    "mañana a partir de las 9:00" if ahora.hour >= 9 else "hoy a partir de las 9:00")
+abierto, franja, cuando_llamamos = horario(ahora)
 
 
 def guardar_lead(canal: str, ficha: dict, conversacion: list | None = None) -> None:
@@ -74,23 +99,36 @@ def guardar_lead(canal: str, ficha: dict, conversacion: list | None = None) -> N
                      json.dumps(conversacion or [], ensure_ascii=False)))
 
 
+def normalizar_telefono(texto: str) -> str | None:
+    """Acepta «612 345 678», «612-345-678», «+34 612345678» o «0034…»; devuelve 9 cifras o None."""
+    cifras = re.sub(r"\D", "", texto)
+    if cifras.startswith("0034"):
+        cifras = cifras[4:]
+    elif cifras.startswith("34") and len(cifras) == 11:
+        cifras = cifras[2:]
+    return cifras if re.fullmatch(r"[6789]\d{8}", cifras) else None
+
+
 st.markdown("<span class='chip demo'>Concepto para la entrevista · no es la web oficial de Qida</span>",
             unsafe_allow_html=True)
 estado = (f"<span class='estado' style='background:#e6f2f1;color:{comun.VERDE}'>● Abierto ahora</span>" if abierto else
           "<span class='estado' style='background:#fff4ef;color:#a8441f'>● Ahora cerrado · te atiende el asistente virtual</span>")
 st.markdown(
     f"<div class='cab'>{MARCA}"
-    f"<div>Llámanos sin compromiso <span class='tel'>{TELEFONO}</span> · {horario} "
-    f"({'fines de semana y festivos' if finde else 'lunes a viernes'}) &nbsp;{estado}</div></div>",
+    f"<div>Llámanos: <a class='tel' href='tel:+34{TELEFONO.replace(' ', '')}'>{TELEFONO}</a> · {franja} &nbsp;{estado}</div></div>",
     unsafe_allow_html=True,
 )
 st.markdown(
-    """
+    f"""
 <div class="hero">
   <h1>Cuidamos a los tuyos en casa</h1>
   <div class="bajada">Cuidadoras profesionales desde 2 horas a la semana, sin permanencia y con una Referente Social
-  que os acompaña de principio a fin.</div>
-  <span class="precio">Desde 170 €/mes · presupuesto gratis</span>
+  que te acompaña de principio a fin.</div>
+  <div class="precio">Desde 170 €/mes · presupuesto gratis</div>
+  <div class="acciones">
+    <a class="boton lleno" href="tel:+34{TELEFONO.replace(' ', '')}">Llamar ahora</a>
+    <a class="boton vacio" href="#formulario">Prefiero que me llaméis</a>
+  </div>
 </div>
 <div class="confianza">
   <div><b>4,8/5</b>calidad del servicio</div>
@@ -106,50 +144,56 @@ izq, der = st.columns([3, 2], gap="large")
 with izq:
     st.markdown("#### Nuestros servicios")
     for col, (titulo, texto) in zip(st.columns(3), [
-        ("Cuidadoras por horas", "Desde 2 horas a la semana, cuando lo necesitéis."),
-        ("Cuidadora interna", "Acompañamiento 24 horas, viviendo en casa."),
+        ("Cuidadora por horas", "Desde 2 horas a la semana, cuando lo necesites."),
+        ("Cuidadora interna", "Acompañamiento las 24 horas, viviendo en casa."),
         ("Fines de semana y noches", "Para que tú también puedas descansar."),
     ]):
         col.markdown(f"<div class='servicio'><b>{titulo}</b><br><span style='color:#4d5d5c'>{texto}</span></div>",
                      unsafe_allow_html=True)
     st.markdown("#### Cómo funciona")
-    PASOS = ["Nos cuentas tu caso", "Tu asesor/a familiar te llama", "Valoramos sin coste y preparamos tu plan",
+    PASOS = ["Nos cuentas tu caso", "Tu asesor/a familiar te llama", "Valoramos tu caso gratis y preparamos tu plan",
              "Te proponemos la cuidadora que mejor encaja y tú decides"]
     for col, (n, texto) in zip(st.columns(4), enumerate(PASOS, 1)):
         col.markdown(f"<div class='paso'><span class='n'>{n}</span><br>{texto}</div>", unsafe_allow_html=True)
 
 with der:
+    st.markdown("<div id='formulario'></div>", unsafe_allow_html=True)
     with st.form("formulario", border=True):
         st.markdown("#### Déjanos tus datos y te llamamos")
-        servicio = st.selectbox("¿Qué necesitas?", ["Cuidadora por horas", "Interna", "Fin de semana", "Noche"])
+        servicio = st.selectbox("¿Qué necesitas?", SERVICIOS)
         telefono = st.text_input("Teléfono", placeholder="600 000 000")
         cp = st.text_input("Código postal", placeholder="28001")
-        acepto = st.checkbox("Acepto que tratéis mis datos para llamarme. " + PRIVACIDAD)
-        enviado = st.form_submit_button("Solicitar llamada", type="primary", use_container_width=True)
-    if enviado:
+        acepto = st.checkbox(CASILLA)
+        st.caption(PRIVACIDAD)
+        enviado = st.form_submit_button("Quiero que me llaméis", type="primary", width="stretch")
+    if enviado and not st.session_state.get("formulario_enviado"):
+        tel = normalizar_telefono(telefono)
         errores = []
-        if not re.fullmatch(r"[6789]\d{8}", telefono.replace(" ", "")):
-            errores.append("el teléfono (9 cifras)")
+        if not tel:
+            errores.append("Escribe un teléfono de 9 cifras (puedes poner +34 delante).")
         if not re.fullmatch(r"\d{5}", cp.strip()):
-            errores.append("el código postal (5 cifras)")
+            errores.append("Escribe un código postal de 5 cifras.")
         if not acepto:
-            errores.append("aceptar el tratamiento de datos")
+            errores.append("Marca la casilla para que podamos llamarte.")
         if errores:
-            st.error("Revisa " + ", ".join(errores) + ".")
+            comun.nota("<br>".join(errores), "alerta")
         else:
-            guardar_lead("Formulario", {"servicio": servicio, "telefono": telefono, "cp": cp})
-            st.success(f"¡Recibido! Te llamamos **{cuando_llamamos}** al {telefono}.")
+            guardar_lead("Formulario", {"servicio": servicio, "telefono": tel, "cp": cp.strip()})
+            st.session_state["formulario_enviado"] = tel
+    if st.session_state.get("formulario_enviado"):
+        tel = st.session_state["formulario_enviado"]
+        comun.nota(f"**¡Recibido!** Tu asesor/a familiar te llamará al {tel[:3]} {tel[3:6]} {tel[6:]} {cuando_llamamos}.")
     if not abierto:
-        st.markdown(f"<div class='aviso-noche'>Son las {ahora:%H:%M}. Ahora no hay nadie al teléfono: deja tus datos o "
-                    f"habla con el asistente virtual y te llamamos {cuando_llamamos}.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='aviso-noche'>Son las {ahora:%H:%M} y ahora no podemos atenderte por teléfono. Déjanos tus "
+                    f"datos o habla con el asistente virtual: te llamamos {cuando_llamamos}.</div>", unsafe_allow_html=True)
 
 
-def vista_equipo(ficha: dict) -> None:
+def vista_equipo(ficha: dict, cuando: str) -> None:
     with st.expander("Vista del equipo · solo en la demo, la familia no la ve", icon=":material/badge:"):
         if ficha.get("escalar"):
-            st.error(f"Pasa a una persona: {ficha.get('motivo_escalado') or ''}")
+            comun.nota(f"**Pasa a una persona:** {ficha.get('motivo_escalado') or ''}", "alerta")
         if ficha.get("llamada_agendada"):
-            st.success(f"Llamada agendada: {cuando_llamamos}")
+            comun.nota(f"**Llamada agendada:** {cuando}.")
         campos = [
             ("Ciudad", ficha.get("ciudad")), ("Servicio", ficha.get("servicio")),
             ("Teléfono", ficha.get("telefono")), ("Nombre", ficha.get("nombre")),
@@ -157,55 +201,61 @@ def vista_equipo(ficha: dict) -> None:
             ("Dependencia", "La menciona" if ficha.get("menciona_dependencia") else "No"),
         ]
         for col, (k, v) in zip(st.columns(3) * 2, campos):
-            col.metric(k, v or "pendiente")
-        st.caption("Entra en el CRM como un lead más (canal «Chat») y pasa por la cola de llamadas.")
+            comun.kpi(col, k, v or "pendiente")
+        st.caption("Entra en el CRM como una familia más (canal «Asistente de noche») y aparece en la cola de llamadas.")
 
 
 def conversaciones_grabadas() -> list[dict]:
-    """Conversaciones reales del asistente v3 con casos que no había visto (y algunas de ajuste), aprobadas por la evaluación."""
+    """Conversaciones reales del asistente v3 (casos nuevos y de ajuste) que pasaron la evaluación."""
     salida = []
     for fichero in ("resultados_v3_reserva2.json", "resultados_v3.json"):
         ruta = comun.RAIZ / "eval" / fichero
         if ruta.exists():
-            for r in json.loads(ruta.read_text(encoding="utf-8")):
-                if r["checks_ok"] and r["juez"].get("veredicto") == "aprueba":
-                    salida.append(r)
+            salida += [r for r in json.loads(ruta.read_text(encoding="utf-8"))
+                       if r["checks_ok"] and r["juez"].get("veredicto") == "aprueba"]
     return salida
 
 
 def chat_grabado() -> None:
-    st.info("**Modo grabado:** no hay modelo conectado en este ordenador, así que el chat reproduce conversaciones "
-            "**reales** del asistente en la evaluación (versión 3). Para chatear en directo hace falta Claude Code.",
-            icon=":material/play_circle:")
+    comun.nota("**Modo grabado:** este ordenador no tiene el modelo conectado, así que el asistente reproduce conversaciones "
+               "**reales** de la evaluación (versión 3). Cada una conserva la hora a la que se hizo.", "neutra")
     grabadas = conversaciones_grabadas()
     if not grabadas:
-        st.warning("No hay conversaciones grabadas. Ejecuta la evaluación (`python eval/ejecutar.py`).")
+        comun.nota("No hay conversaciones grabadas. Ejecuta la evaluación (`python eval/ejecutar.py`).", "alerta")
         return
+    casos = {c["id"]: c for f in ("casos_reserva2.json", "casos.json")
+             if (comun.RAIZ / "eval" / f).exists()
+             for c in json.loads((comun.RAIZ / "eval" / f).read_text(encoding="utf-8"))}
     etiquetas = {f"{r['categoria'].replace('_', ' ').capitalize()} · «{r['historial'][0]['texto'][:60]}»": r for r in grabadas}
     elegida = etiquetas[st.selectbox("Elige una conversación", list(etiquetas))]
+    momento = datetime.fromisoformat(casos[elegida["id"]]["hora"]) if elegida["id"] in casos else ahora
+    _, _, cuando = horario(momento)
+    st.caption(f"Conversación grabada a las {momento:%H:%M} de un día {['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'][momento.weekday()]}.")
     with st.container(height=320):
-        st.chat_message("assistant").write("Hola, soy un **asistente virtual con IA**, no una persona. ¿Qué necesitáis?")
+        st.chat_message("assistant").write("Hola, soy el **asistente virtual de Qida**: una IA, no una persona. "
+                                           "Cuéntame qué ayuda buscas.")
         for m in elegida["historial"]:
             st.chat_message("user" if m["rol"] == "usuario" else "assistant").write(m["texto"])
-    vista_equipo(elegida["ficha"])
+    vista_equipo(elegida["ficha"], cuando)
 
 
 @st.dialog("Asistente virtual de Qida", width="large")
 def chat():
     historial = st.session_state.setdefault("historial", [])
     ficha = st.session_state.setdefault("ficha", {})
-    st.error("**¿Es una urgencia médica?** Llama ahora al **112**.", icon=":material/emergency:")
+    comun.nota("**¿Es una urgencia médica?** Llama ahora al **112**.", "alerta")
     if llm.modo() == "grabado":
         chat_grabado()
         return
-    acepto = st.checkbox("Acepto que tratéis lo que escriba, incluidos datos de salud que yo cuente, para llamarme. "
-                         + PRIVACIDAD, key="acepto_chat")
+    acepto = st.checkbox("Acepto que Qida use lo que escriba, incluidos los datos de salud que cuente, para llamarme.",
+                         key="acepto_chat")
+    st.caption(PRIVACIDAD)
 
     caja = st.container(height=320)
     with caja:
         st.chat_message("assistant").write(
-            "Hola, soy un **asistente virtual con IA**, no una persona. Te ayudo a que un asesor te llame "
-            f"{cuando_llamamos}. ¿Qué necesitáis?")
+            "Hola, soy el **asistente virtual de Qida**: una IA, no una persona. Cuéntame qué ayuda buscas y dejo "
+            f"preparado que tu asesor/a familiar te llame {cuando_llamamos}.")
         for m in historial:
             st.chat_message("user" if m["rol"] == "usuario" else "assistant").write(m["texto"])
 
@@ -215,13 +265,13 @@ def chat():
             r1, r2, r3 = st.columns(3)
             for col, texto in ((r1, "Necesito ayuda urgente en casa"), (r2, "Quiero saber precios"),
                                (r3, "Tengo dudas con la Dependencia")):
-                if col.button(texto, use_container_width=True):
+                if col.button(texto, width="stretch"):
                     pregunta = texto
-        if st.button("Prefiero que me llame una persona", icon=":material/support_agent:", use_container_width=True):
+        if st.button("Prefiero que me llame una persona", icon=":material/support_agent:", width="stretch"):
             pregunta = "Prefiero que me llame una persona"
     pregunta = st.chat_input("Escribe aquí…", disabled=not acepto) or pregunta
     if not acepto:
-        st.caption("Para escribir, acepta el tratamiento de datos.")
+        st.caption("Para escribir, marca la casilla.")
 
     if pregunta:
         historial.append({"rol": "usuario", "texto": pregunta})
@@ -230,10 +280,10 @@ def chat():
             with st.chat_message("assistant"), st.spinner("Escribiendo… (unos segundos)"):
                 try:
                     texto, nueva = asistente.responder(historial, ahora)
-                except ErrorModelo as e:
-                    st.error(f"No he podido llamar al modelo: {e}. Si no tienes Claude Code, arranca con QIDA_MODO=grabado.")
-                    historial.pop()
-                    return
+                except Exception:  # noqa: BLE001 · la familia nunca ve un error técnico; el detalle va al registro
+                    logging.exception("Fallo del asistente")
+                    texto, nueva = (f"Ahora mismo no puedo responder. Déjanos tu teléfono en el formulario o llámanos al "
+                                    f"{TELEFONO} a partir de las 9:00."), {}
                 st.write(texto)
         historial.append({"rol": "asistente", "texto": texto})
         st.session_state["ficha"] = ficha = nueva or ficha
@@ -241,7 +291,7 @@ def chat():
             guardar_lead("Chat", ficha, historial)
             st.session_state["guardado"] = True
 
-    vista_equipo(ficha)
+    vista_equipo(ficha, cuando_llamamos)
     if st.button("Empezar de nuevo"):
         for k in ("historial", "ficha", "guardado"):
             st.session_state.pop(k, None)

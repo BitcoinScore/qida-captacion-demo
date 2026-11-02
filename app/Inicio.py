@@ -5,18 +5,19 @@ import comun
 st.set_page_config(page_title="Qida · Captación (concepto)", page_icon=":material/home_health:", layout="wide")
 comun.estilo()
 
+# El orden sigue el recorrido de la demo: medir → lo que ve la familia → la cola → los canales → la calidad.
 paginas = {
-    "Lo que ve la familia": [
-        st.Page("paginas/web.py", title="Web con asistente de noche", icon=":material/language:"),
+    "Recorrido": [
+        st.Page("paginas/viaje.py", title="1 · Viaje de la familia", icon=":material/filter_alt:", default=True),
+        st.Page("paginas/web.py", title="2 · Web con asistente de noche", icon=":material/language:"),
+        st.Page("paginas/primera_llamada.py", title="3 · Cola de llamadas", icon=":material/call:"),
+        st.Page("paginas/descubre.py", title="4 · Canales y ciudades", icon=":material/campaign:"),
+        st.Page("paginas/calidad.py", title="5 · Calidad del asistente", icon=":material/verified:"),
     ],
-    "Panel del equipo": [
-        st.Page("paginas/viaje.py", title="Viaje de la familia", icon=":material/filter_alt:", default=True),
-        st.Page("paginas/descubre.py", title="Canales y ciudades", icon=":material/campaign:"),
-        st.Page("paginas/primera_llamada.py", title="Cola de llamadas", icon=":material/call:"),
+    "Anexo": [
         st.Page("paginas/se_queda.py", title="Retención", icon=":material/favorite:"),
-        st.Page("paginas/calidad.py", title="Calidad del asistente", icon=":material/verified:"),
     ],
 }
 st.navigation(paginas).run()
-st.sidebar.caption("Concepto de Máximo Fernández para la entrevista de AI Product Builder. No es una herramienta oficial "
-                   "de Qida. Cifras del panel inventadas; marca, servicios y condiciones tomados de qida.es.")
+st.sidebar.caption("Concepto de Máximo Fernández Catalán para la candidatura de AI Product Builder. No es una herramienta "
+                   "oficial de Qida. Cifras del panel inventadas; marca, servicios y condiciones tomados de qida.es.")

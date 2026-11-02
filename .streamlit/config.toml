@@ -6,3 +6,8 @@ primaryColor = "#004039"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#EFF5F5"
 textColor = "#333333"
+
+[client]
+# Nunca enseñar trazas técnicas en pantalla (la familia vería rutas y errores en inglés); el detalle va al registro.
+showErrorDetails = "none"
+toolbarMode = "viewer"

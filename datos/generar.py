@@ -75,11 +75,11 @@ def decaimiento(minutos):
     return 0.55 + 0.45 * math.exp(-minutos / 600)
 
 
-def generar():
+def generar(db: Path = DB):
     rng = random.Random(SEMILLA)
-    if DB.exists():
-        DB.unlink()
-    con = sqlite3.connect(DB)
+    if db.exists():
+        db.unlink()
+    con = sqlite3.connect(db)
     con.executescript((Path(__file__).parent / "esquema.sql").read_text(encoding="utf-8"))
 
     dias = (FIN - INICIO).days + 1
@@ -185,7 +185,7 @@ def generar():
         "SELECT (SELECT COUNT(*) FROM leads),(SELECT COUNT(*) FROM valoraciones),(SELECT COUNT(*) FROM altas),(SELECT COUNT(*) FROM bajas)"
     ).fetchone()
     con.close()
-    print(f"leads={resumen[0]} valoraciones={resumen[1]} altas={resumen[2]} bajas={resumen[3]} -> {DB}")
+    print(f"leads={resumen[0]} valoraciones={resumen[1]} altas={resumen[2]} bajas={resumen[3]} -> {db}")
 
 
 if __name__ == "__main__":

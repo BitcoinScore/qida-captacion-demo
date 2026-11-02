@@ -1,5 +1,6 @@
 import sqlite3
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pandas as pd
@@ -19,6 +20,10 @@ LOGO = Path(__file__).resolve().parent / "assets" / "qida_logo.png"
 # Identidad de Qida (qida.es, 02-11-2026)
 VERDE, VERDE_MEDIO, VERDE_CLARO, FONDO, BORDE, NARANJA, TEXTO = (
     "#004039", "#338581", "#99C2C0", "#EFF5F5", "#CCE0DF", "#ea6d43", "#333333")
+# Tonos para TEXTO que cumplen WCAG AA (≥4,5:1 sobre blanco); los de marca se quedan para barras, bordes y fondos.
+VERDE_TEXTO, NARANJA_TEXTO, GRIS_TEXTO = "#2B6E69", "#B4501F", "#5B6B6A"
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+         "noviembre", "diciembre"]
 
 ESTILO = f"""
 <style>
@@ -30,16 +35,28 @@ h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: 
   letter-spacing: -.01em;}}
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
 [data-testid="stSidebar"] {{background: {FONDO}; border-right: 1px solid {BORDE};}}
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {{color: {GRIS_TEXTO} !important;}}
 .kpi {{background: white; border: 1px solid {BORDE}; border-radius: 14px; padding: 14px 16px; height: 100%;}}
-.kpi .etiqueta {{font-size: .82rem; color: #5b6b6a; text-transform: uppercase; letter-spacing: .04em;}}
+.kpi .etiqueta {{font-size: .82rem; color: {GRIS_TEXTO}; text-transform: uppercase; letter-spacing: .04em;}}
 .kpi .valor {{font-size: 2rem; font-weight: 700; color: {VERDE}; line-height: 1.15; margin: 4px 0;}}
-.kpi .sub {{font-size: .82rem; color: #5b6b6a;}}
-.kpi .bien {{color: {VERDE_MEDIO}; font-weight: 700;}}
-.kpi .mal {{color: {NARANJA}; font-weight: 700;}}
+.kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
+.kpi.alerta {{border-color: {NARANJA}; border-width: 2px;}}
+.kpi.alerta .valor {{color: {NARANJA_TEXTO};}}
+.kpi .bien {{color: {VERDE_TEXTO}; font-weight: 700;}}
+.kpi .mal {{color: {NARANJA_TEXTO}; font-weight: 700;}}
 .chip {{display: inline-block; background: {FONDO}; border: 1px solid {BORDE}; color: {VERDE}; border-radius: 99px;
   padding: 2px 10px; font-size: .8rem; font-weight: 500;}}
 .chip.demo {{background: #fff4ef; border-color: #f4c3b0; color: #a8441f;}}
-.seccion {{font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: {VERDE_MEDIO}; font-weight: 700;
+.chip.real {{background: #e6f2f1; border-color: {VERDE_MEDIO}; color: {VERDE};}}
+.nota {{border-radius: 12px; padding: 12px 16px; margin: 6px 0 14px; border: 1px solid {BORDE}; background: {FONDO};
+  color: {TEXTO}; line-height: 1.5;}}
+.nota.clave {{border-left: 5px solid {VERDE}; background: {FONDO};}}
+.nota.alerta {{border-left: 5px solid {NARANJA}; background: #fff7f3; border-color: #f4c3b0;}}
+.nota.neutra {{background: white;}}
+[data-testid="stChatMessageAvatarAssistant"], [data-testid="stChatMessageAvatarUser"] {{background: {VERDE} !important;
+  color: white !important;}}
+[data-testid="stChatMessageAvatarUser"] {{background: {VERDE_CLARO} !important; color: {VERDE} !important;}}
+.seccion {{font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: {VERDE_TEXTO}; font-weight: 700;
   margin: 18px 0 4px;}}
 </style>
 """
@@ -52,20 +69,61 @@ def estilo() -> None:
         st.logo(str(LOGO), size="large")
 
 
+def es(v: float, dec: int = 1, suf: str = "") -> str:
+    """Número en formato español: punto de miles, coma decimal («13,2 %», «1.906», «7,3×»)."""
+    if v is None or v != v or v in (float("inf"), float("-inf")):
+        return "—"
+    texto = f"{v:,.{dec}f}".replace(",", " ").replace(".", ",").replace(" ", ".")
+    return texto + suf
+
+
+def mes_es(ym: str) -> str:
+    """«2026-09» → «septiembre de 2026»."""
+    a, m = ym[:7].split("-")
+    return f"{MESES[int(m) - 1]} de {a}"
+
+
+def nota(texto: str, tipo: str = "clave") -> None:
+    """Caja de mensaje con la marca (sustituye a st.success/st.info/st.warning). tipo: clave · alerta · neutra."""
+    import re as _re
+    html = _re.sub(r"\*\*(.+?)\*\*", r"<b>\g<1></b>", texto)
+    st.markdown(f"<div class='nota {tipo}'>{html}</div>", unsafe_allow_html=True)
+
+
 def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None = None, mejor_si_sube: bool = True,
-        unidad_tendencia: str = " pts") -> None:
-    """Tarjeta de KPI: etiqueta, valor grande, variación coloreada (verde si mejora, naranja si empeora) y contexto."""
+        unidad_tendencia: str = " p. p.", alerta: bool = False) -> None:
+    """Tarjeta de KPI: etiqueta, valor grande, variación frente al mes anterior y contexto.
+
+    La variación se colorea según mejore o empeore; `alerta=True` marca la tarjeta entera cuando el valor está lejos del
+    objetivo (así una mejora pequeña de un dato malo no se lee como buena noticia).
+    """
     flecha = ""
     if tendencia is not None and abs(tendencia) >= 0.05:
         mejora = (tendencia > 0) == mejor_si_sube
         flecha = (f"<span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
-                  f"{abs(tendencia):.1f}{unidad_tendencia}</span> vs mes anterior · ").replace(".", ",")
-    col.markdown(f"<div class='kpi'><div class='etiqueta'>{etiqueta}</div><div class='valor'>{valor}</div>"
-                 f"<div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
+                  f"{es(abs(tendencia))}{unidad_tendencia}</span> frente al mes anterior · ")
+    col.markdown(f"<div class='kpi{' alerta' if alerta else ''}'><div class='etiqueta'>{etiqueta}</div>"
+                 f"<div class='valor'>{valor}</div><div class='sub'>{flecha}{sub}</div></div>", unsafe_allow_html=True)
 
 
-def conexion() -> sqlite3.Connection:
-    return sqlite3.connect(DB, check_same_thread=False)
+def _asegurar_base() -> None:
+    """Si falta la base inventada (o quedó vacía), se genera: nunca una traza por un fichero que no existe."""
+    if not DB.exists() or DB.stat().st_size == 0:
+        DB.unlink(missing_ok=True)
+        from datos import generar
+        generar.generar(DB)
+
+
+@contextmanager
+def conexion():
+    """Conexión de solo uso: se cierra siempre (en Windows, una conexión abierta bloquea el fichero)."""
+    _asegurar_base()
+    con = sqlite3.connect(DB, check_same_thread=False)
+    try:
+        yield con
+        con.commit()
+    finally:
+        con.close()
 
 
 def leer_sql(nombre: str) -> str:
@@ -82,17 +140,30 @@ def ejecutar(nombre: str, ciudades: list[str]) -> tuple[str, pd.DataFrame]:
     return texto, df
 
 
-def cabecera(icono: str, titulo: str, quien: str, para_que: str) -> None:
-    """Título de cada pantalla con quién la usa y para qué. `icono` se mantiene por compatibilidad, no se pinta."""
-    st.markdown(f"<div class='seccion'>Panel de captación · {quien}</div>", unsafe_allow_html=True)
-    st.title(titulo)
+def cabecera(pantalla: str, conclusion: str, quien: str, para_que: str, chip: str = "Concepto · datos inventados",
+             real: bool = False) -> None:
+    """Cabecera de cada pantalla: nombre y destinatario en pequeño, la CONCLUSIÓN como título, y el contexto."""
+    st.markdown(f"<div class='seccion'>{pantalla} · para {quien}</div>", unsafe_allow_html=True)
+    st.title(conclusion)
     st.markdown(
         f"<div style='display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin:-.5rem 0 1.2rem'>"
-        f"<span style='color:#5b6b6a'>{para_que}</span>"
-        f"<span class='chip demo'>Concepto · datos inventados</span></div>",
+        f"<span style='color:{GRIS_TEXTO}'>{para_que}</span>"
+        f"<span class='chip {'real' if real else 'demo'}'>{chip}</span></div>",
         unsafe_allow_html=True,
     )
 
 
 def selector_ciudades() -> list[str]:
-    return st.sidebar.multiselect("Ciudades", CIUDADES, default=CIUDADES) or CIUDADES
+    """Filtro de ciudades en la barra lateral. Se recuerda al cambiar de pantalla; vacío = aviso, no «todas» a escondidas."""
+    if "_ciudades" not in st.session_state:
+        st.session_state["_ciudades"] = list(CIUDADES)
+
+    def guardar():
+        st.session_state["_ciudades"] = st.session_state["_selector_ciudades"]
+
+    elegidas = st.sidebar.multiselect("Ciudades", CIUDADES, default=st.session_state["_ciudades"],
+                                      key="_selector_ciudades", on_change=guardar)
+    if not elegidas:
+        nota("Elige al menos una ciudad en la barra lateral.", "alerta")
+        st.stop()
+    return elegidas

@@ -62,8 +62,8 @@ def triangulo(d: pd.DataFrame, max_meses: int = 12) -> pd.DataFrame:
     filas = {}
     for coh, g in d.groupby("cohorte"):
         edad = (pd.Timestamp(CORTE) - pd.Timestamp(coh + "-01")).days / 30.4
-        filas[coh] = {m: round(100 * ((g["meses"] >= m) | ((g["baja"] == 0) & (g["meses"] >= m))).mean(), 0)
-                      if m <= edad - 1 else None for m in range(0, max_meses + 1)}
+        filas[coh] = {m: round(100 * (g["meses"] >= m).mean(), 0) if m <= edad - 1 else None
+                      for m in range(0, max_meses + 1)}
     return pd.DataFrame(filas).T.sort_index()
 
 
@@ -84,30 +84,49 @@ def kpis_mes(con: sqlite3.Connection, mes: str) -> dict:
     }
 
 
-def economia_por_canal(con: sqlite3.Connection, ciudades: list[str]) -> pd.DataFrame:
-    """CAC de pago, CAC combinado, LTV a 12 meses (con margen supuesto), LTV:CAC y meses de payback por canal."""
+def economia_por_canal(con: sqlite3.Connection, ciudades: list[str], desde: str = "2025-05") -> pd.DataFrame:
+    """Por canal: familias, contratos, gasto, coste por familia y por valoración, CAC de pago y total, LTV a 12 meses
+    (margen supuesto), LTV:CAC y meses para recuperar el CAC. `desde`: primer mes de la cohorte (AAAA-MM).
+
+    Con menos de 30 contratos en un canal, su permanencia propia no es fiable: se usa la general (y se marca).
+    """
     marc = ",".join("?" * len(ciudades))
     base = pd.read_sql(
-        f"""SELECT c.canal, COUNT(*) AS familias, COUNT(a.lead_id) AS contratos, AVG(a.ingreso_mes) AS ingreso_mes
-            FROM cohorte c LEFT JOIN altas_30d a ON a.lead_id = c.id
-            WHERE c.ciudad IN ({marc}) GROUP BY c.canal""", con, params=ciudades)
+        f"""SELECT c.canal, COUNT(*) AS familias, COUNT(v.lead_id) AS valoraciones, COUNT(a.lead_id) AS contratos,
+                   AVG(a.ingreso_mes) AS ingreso_mes
+            FROM cohorte c LEFT JOIN valoraciones_30d v ON v.lead_id = c.id LEFT JOIN altas_30d a ON a.lead_id = c.id
+            WHERE c.ciudad IN ({marc}) AND substr(c.fecha_entrada, 1, 7) >= ? GROUP BY c.canal""",
+        con, params=[*ciudades, desde])
     gasto = pd.read_sql(
         f"""SELECT canal, SUM(CASE WHEN tipo = 'medios' THEN importe ELSE 0 END) AS gasto_medios, SUM(importe) AS gasto_total
-            FROM gasto WHERE mes < '2026-10' AND ciudad IN ({marc}) GROUP BY canal""", con, params=ciudades)
+            FROM gasto WHERE mes < '2026-10' AND mes >= ? AND ciudad IN ({marc}) GROUP BY canal""",
+        con, params=[desde, *ciudades])
     df = base.merge(gasto, on="canal", how="left").fillna({"gasto_medios": 0, "gasto_total": 0})
     curvas = duraciones(con, ciudades)
-    ltv, payback = [], []
+    s_general = _supervivencia(curvas)
+    ltv, payback, fiable = [], [], []
     for _, f in df.iterrows():
-        km = kaplan_meier(curvas[curvas["canal"] == f["canal"]], hasta=MESES_LTV)
-        s = km.set_index("mes")["pct_siguen"].reindex(range(MESES_LTV), method="ffill") / 100
-        margen_mes = (f["ingreso_mes"] or 0) * MARGEN_BRUTO * s
+        propias = curvas[curvas["canal"] == f["canal"]]
+        s = _supervivencia(propias) if len(propias) >= 30 else s_general
+        fiable.append(len(propias) >= 30)
+        margen_mes = (f["ingreso_mes"] if f["ingreso_mes"] == f["ingreso_mes"] and f["ingreso_mes"] else 0) * MARGEN_BRUTO * s
         ltv.append(margen_mes.sum())
         cac = f["gasto_total"] / f["contratos"] if f["contratos"] else float("nan")
         acumulado = margen_mes.cumsum()
-        payback.append(int((acumulado < cac).sum()) + 1 if cac and (acumulado >= cac).any() else None)
+        payback.append(int((acumulado < cac).sum()) + 1 if cac and cac == cac and (acumulado >= cac).any() else None)
+    contratos = df["contratos"].where(df["contratos"] > 0)  # sin contratos → sin cociente (nunca «inf»)
     df["ltv_12m"] = ltv
-    df["cac_pago"] = (df["gasto_medios"] / df["contratos"]).where(df["gasto_medios"] > 0)
-    df["cac_combinado"] = df["gasto_total"] / df["contratos"]
+    df["permanencia_propia"] = fiable
+    df["coste_por_familia"] = (df["gasto_total"] / df["familias"]).where(df["gasto_total"] > 0)
+    df["coste_por_valoracion"] = (df["gasto_total"] / df["valoraciones"].where(df["valoraciones"] > 0)).where(df["gasto_total"] > 0)
+    df["cac_pago"] = (df["gasto_medios"] / contratos).where(df["gasto_medios"] > 0)
+    df["cac_combinado"] = (df["gasto_total"] / contratos).where(df["gasto_total"] > 0)
     df["ltv_cac"] = df["ltv_12m"] / df["cac_combinado"]
     df["payback_meses"] = payback
     return con_ic(df, "contratos", "familias")
+
+
+def _supervivencia(d: pd.DataFrame) -> pd.Series:
+    """Permanencia mes a mes (0..MESES_LTV-1) con Kaplan-Meier; si la curva se corta por falta de datos, se mantiene."""
+    km = kaplan_meier(d, hasta=MESES_LTV)
+    return km.set_index("mes")["pct_siguen"].reindex(range(MESES_LTV)).ffill() / 100

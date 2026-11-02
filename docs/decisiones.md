@@ -27,7 +27,7 @@ Familia ──► Web + asistente (Streamlit) ──► motor/asistente.py ─�
 | El asistente nunca habla con personas mayores, solo con familiares que escriben, y siempre ofrece una persona | Criterio propio: el cuidado es humano | Agente de voz con mayores |
 | Evaluación en tres capas: reglas → juez LLM → calibración humana; **casos reservados** | Cada capa es más cara; los reservados detectan el sobreajuste | Probar a mano unas pocas conversaciones |
 
-## Límites conocidos (honestos)
+## Límites conocidos
 
 - **Datos inventados.** Las tasas, costes y bajas son supuestos de `datos/generar.py`; el valor está en el método.
 - **Margen bruto supuesto del 30 %** para el LTV; con el real cambia el LTV:CAC.
@@ -56,5 +56,5 @@ Familia ──► Web + asistente (Streamlit) ──► motor/asistente.py ─�
 ## Coste orientativo del asistente
 
 Claude Haiku con ~6.000 tokens de entrada (prompt y base de conocimiento) y ~200 de salida por respuesta, con caché de
-prompt: del orden de **céntimos por conversación** (verificar con la tarifa vigente); para unas 1.500 conversaciones nocturnas al mes, decenas de euros. A
-comparar con el valor de un contrato (LTV de miles de euros en la demo).
+prompt: del orden de **céntimos por conversación**; para unas 1.500 conversaciones nocturnas al mes, decenas de euros. Frente
+al valor de un contrato (miles de euros en la demo), es un coste menor.
