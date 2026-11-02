@@ -107,22 +107,28 @@ with st.container():
 st.divider()
 st.subheader("3. Canal × ciudad")
 with st.container():
-    metrica = st.radio("Mostrar", ["% que contrata", "CAC total (€ por contrato)"], horizontal=True)
+    metrica = st.radio("Mostrar", ["% que contrata", "Coste por contrato (CAC total)"], horizontal=True)
+    es_pct = metrica.startswith("%")
     c = cruce.copy()
-    c["valor"] = (100 * c["contratos"] / c["familias"]) if metrica.startswith("%") else \
-        (c["gasto"] / c["contratos"].where(c["contratos"] > 0)).where(c["gasto"].fillna(0) > 0)
+    c["valor"] = (100 * c["contratos"] / c["familias"]) if es_pct else         (c["gasto"] / c["contratos"].where(c["contratos"] > 0)).where(c["gasto"].fillna(0) > 0)
     tabla = c.pivot(index="canal", columns="ciudad", values="valor")
-    n = c.pivot(index="canal", columns="ciudad", values="contratos")
-    sufijo = " %" if metrica.startswith("%") else " €"
-    texto = [[("—" if v != v else es(v, 1 if sufijo == " %" else 0, sufijo)) + (" ·" if (k == k and k < 15) else "")
+    n = c.pivot(index="canal", columns="ciudad", values="contratos").reindex(tabla.index)
+    sin_dato = tabla.index[tabla.isna().all(axis=1)].tolist()  # p. ej. «Teléfono directo» no tiene coste asignado
+    tabla, n = tabla.drop(index=sin_dato), n.drop(index=sin_dato)
+    orden = tabla.mean(axis=1).sort_values(ascending=es_pct).index  # el mejor arriba
+    tabla, n = tabla.loc[orden], n.loc[orden]  # Plotly pinta la primera fila abajo: así el mejor queda arriba
+    sufijo = " %" if es_pct else " €"
+    texto = [[("—" if v != v else es(v, 1 if es_pct else 0, sufijo)) + ("*" if (v == v and k == k and k < 15) else "")
               for v, k in zip(fila_v, fila_n)] for fila_v, fila_n in zip(tabla.values, n.values)]
-    escala = graficos.ESCALA if metrica.startswith("%") else [[0, graficos.ACENTO], [1, "#EFF5F5"]]
+    escala = graficos.ESCALA if es_pct else [[0, graficos.ACENTO], [1, "#EFF5F5"]]
     fig = go.Figure(go.Heatmap(z=tabla.values, x=tabla.columns, y=tabla.index, text=texto, texttemplate="%{text}",
-                               colorscale=escala, showscale=False, hoverinfo="skip"))
-    graficos._limpio(fig, 380)
+                               colorscale=escala, showscale=False, hoverinfo="skip", xgap=2, ygap=2))
+    graficos._limpio(fig, 60 + 44 * len(tabla))
+    fig.update_layout(plot_bgcolor="#F1F5F5", xaxis=dict(side="top", showgrid=False), yaxis=dict(showgrid=False))
     comun.grafico(fig)
-    st.caption("Para preguntas como «¿subo Meta en Valencia?». · = menos de 15 contratos en esa celda: no decidir solo con ella. "
-               "En coste, más oscuro = más barato.")
+    nota_sin = f" No se muestra {', '.join(sin_dato)}: no tiene coste asignado." if sin_dato and not es_pct else ""
+    st.caption("Para preguntas como «¿subo Meta en Valencia?». * = menos de 15 contratos en esa celda: no decidir solo con "
+               f"ella. — = sin contratos. {'Más oscuro = convierte más.' if es_pct else 'Más oscuro = más barato.'}{nota_sin}")
 
 st.divider()
 st.subheader("4. ¿Dónde?")
