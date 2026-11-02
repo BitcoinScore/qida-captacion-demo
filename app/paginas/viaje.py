@@ -9,16 +9,18 @@ from comun import es
 from motor import metricas
 
 ULTIMO_DATO = date(2026, 10, 31)  # «hoy» en la demo: último día con datos
-periodo = st.sidebar.date_input("Periodo de los indicadores", value=(ULTIMO_DATO - timedelta(days=29), ULTIMO_DATO),
+periodo = st.sidebar.date_input("Periodo de los indicadores", value=(ULTIMO_DATO.replace(day=1), ULTIMO_DATO),
                                 min_value=date(2025, 5, 1), max_value=ULTIMO_DATO, format="DD/MM/YYYY",
-                                help="Por defecto, los últimos 30 días. Se compara con el periodo anterior de la misma duración.")
+                                help="Por defecto, el último mes. Un mes completo se compara con el mes anterior; "
+                                     "otro periodo, con el anterior de la misma duración.")
 if not isinstance(periodo, tuple) or len(periodo) != 2:
     comun.nota("Elige la fecha de inicio y la de fin del periodo en la barra lateral.", "alerta")
     st.stop()
 p_desde, p_hasta = periodo
 duracion = (p_hasta - p_desde).days + 1
 a_hasta = p_desde - timedelta(days=1)
-a_desde = a_hasta - timedelta(days=duracion - 1)
+mes_completo = p_desde.day == 1 and (p_hasta + timedelta(days=1)).day == 1 and p_desde.month == p_hasta.month
+a_desde = a_hasta.replace(day=1) if mes_completo else a_hasta - timedelta(days=duracion - 1)
 
 with comun.conexion() as con:
     familias, contactadas, valoraciones, contratos, contactos, desde, hasta, n_meses = con.execute(
@@ -55,30 +57,32 @@ def corta(d: date) -> str:
     return f"{d.day} {comun.MESES[d.month - 1][:3]} {d.year}"
 
 
-st.markdown(f"<div class='seccion'>{corta(p_desde)} – {corta(p_hasta)} · {duracion} días · frente a los {duracion} días "
-            "anteriores</div>", unsafe_allow_html=True)
+titulo = (f"{comun.MESES[p_desde.month - 1]} de {p_desde.year} · frente a {comun.MESES[a_desde.month - 1]}" if mes_completo
+          else f"{corta(p_desde)} – {corta(p_hasta)} · {duracion} días · frente a los {duracion} días anteriores")
+st.markdown(f"<div class='seccion'>{titulo}</div>", unsafe_allow_html=True)
 if act["familias"] == 0:
     comun.nota("No hay familias en ese periodo. Elige otras fechas.", "alerta")
     st.stop()
 provisional = not act["madura"]
+frente = "frente al mes anterior" if mes_completo else "frente al periodo anterior"
 fila = comun.Fila()
 k = [fila] * 6
 comun.kpi(k[0], "Piden ayuda", es(act["familias"], 0), "familias, sin duplicados",
-          100 * (act["familias"] / ant["familias"] - 1) if ant["familias"] else None, unidad_tendencia=" %", icono="groups")
+          100 * (act["familias"] / ant["familias"] - 1) if ant["familias"] else None, unidad_tendencia=" %", icono="groups", frente=frente)
 comun.kpi(k[1], "De noche", f"{es(act['noche'], 0)} %", "fuera del horario de atención",
-          act["noche"] - ant["noche"], mejor_si_sube=False, icono="dark_mode")
+          act["noche"] - ant["noche"], mejor_si_sube=False, icono="dark_mode", frente=frente)
 comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", "objetivo: 50 %",
-          act["rapidas"] - ant["rapidas"], alerta=act["rapidas"] < 25, icono="phone_in_talk")
+          act["rapidas"] - ant["rapidas"], alerta=act["rapidas"] < 25, icono="phone_in_talk", frente=frente)
 comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %",
           "provisional: aún pueden contratar" if provisional else "en 30 días · objetivo: 15 %",
-          None if provisional else act["conversion"] - ant["conversion"], icono="handshake")
+          None if provisional else act["conversion"] - ant["conversion"], icono="handshake", frente=frente)
 comun.kpi(k[4], "Coste por familia", es(act["cac"], 0, " €"),
           "provisional: faltan contratos por llegar" if provisional else "CAC total del periodo",
-          None if provisional else act["cac"] - ant["cac"], mejor_si_sube=False, unidad_tendencia=" €", icono="euro")
+          None if provisional else act["cac"] - ant["cac"], mejor_si_sube=False, unidad_tendencia=" €", icono="euro", frente=frente)
 comun.kpi(k[5], "Siguen al año", f"{es(100 * r12, 0)} %", f"histórico · cada euro vuelve ×{es(ltv_cac)}", icono="favorite")
 fila.pintar()
 st.caption("Objetivos de ejemplo. Verde: mejora; naranja: empeora o está lejos del objetivo. "
-           + ("Las familias de los últimos 30 días aún pueden contratar: conversión y coste son provisionales y no se "
+           + ("Las familias de los últimos 30 días del periodo aún pueden contratar: conversión y coste son provisionales y no se "
               "comparan. " if provisional else "")
            + "La permanencia es histórica (hacen falta meses para medirla).")
 

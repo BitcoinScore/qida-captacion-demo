@@ -30,12 +30,13 @@ with comun.conexion() as con:
             WHERE c.ciudad IN ({marc}) AND substr(c.fecha_entrada, 1, 7) >= ? GROUP BY c.canal""",
         con, params=[*ciudades, desde])
     cruce = pd.read_sql(
-        f"""SELECT c.canal, c.ciudad, COUNT(*) AS familias, COUNT(a.lead_id) AS contratos,
+        f"""SELECT c.canal, c.ciudad, COUNT(*) AS familias, COUNT(a.lead_id) AS contratos, AVG(a.ingreso_mes) AS ingreso,
                    (SELECT SUM(importe) FROM gasto g WHERE g.canal = c.canal AND g.ciudad = c.ciudad
                       AND g.mes >= ? AND g.mes < '2026-10') AS gasto
             FROM cohorte c LEFT JOIN altas_30d a ON a.lead_id = c.id
             WHERE c.ciudad IN ({marc}) AND substr(c.fecha_entrada, 1, 7) >= ? GROUP BY c.canal, c.ciudad""",
         con, params=[desde, *ciudades, desde])
+    curvas = metricas.duraciones(con, ciudades)
 sql_embudo = comun.leer_sql("1_embudo_por_canal.sql")
 
 fiables = eco[(eco["contratos"] >= 50) & eco["ltv_cac"].notna()]
@@ -107,28 +108,46 @@ with st.container():
 st.divider()
 st.subheader("3. Canal × ciudad")
 with st.container():
-    metrica = st.radio("Mostrar", ["% que contrata", "Coste por contrato (CAC total)"], horizontal=True)
-    es_pct = metrica.startswith("%")
+    MODOS = ["Retorno de la inversión", "% que contrata", "Coste por contrato (CAC total)"]
+    metrica = st.radio("Mostrar", MODOS, horizontal=True)
+    es_pct, es_retorno = metrica == MODOS[1], metrica == MODOS[0]
     c = cruce.copy()
-    c["valor"] = (100 * c["contratos"] / c["familias"]) if es_pct else         (c["gasto"] / c["contratos"].where(c["contratos"] > 0)).where(c["gasto"].fillna(0) > 0)
+    # Valor de una familia en 12 meses = facturación mensual media × margen bruto (supuesto) × meses que sigue (Kaplan-Meier)
+    s_general = metricas._supervivencia(curvas)
+    meses_canal = {k: (metricas._supervivencia(g) if len(g) >= 30 else s_general).sum() for k, g in curvas.groupby("canal")}
+    c["valor_familia"] = c["ingreso"] * metricas.MARGEN_BRUTO * c["canal"].map(meses_canal).fillna(s_general.sum())
+    coste = (c["gasto"] / c["contratos"].where(c["contratos"] > 0)).where(c["gasto"].fillna(0) > 0)
+    if es_pct:
+        c["valor"] = 100 * c["contratos"] / c["familias"]
+    elif es_retorno:
+        c["valor"] = c["valor_familia"] / coste
+    else:
+        c["valor"] = coste
     tabla = c.pivot(index="canal", columns="ciudad", values="valor")
     n = c.pivot(index="canal", columns="ciudad", values="contratos").reindex(tabla.index)
     sin_dato = tabla.index[tabla.isna().all(axis=1)].tolist()  # p. ej. «Teléfono directo» no tiene coste asignado
     tabla, n = tabla.drop(index=sin_dato), n.drop(index=sin_dato)
-    orden = tabla.mean(axis=1).sort_values(ascending=es_pct).index  # el mejor arriba
+    orden = tabla.mean(axis=1).sort_values(ascending=es_pct or es_retorno).index  # el mejor arriba
     tabla, n = tabla.loc[orden], n.loc[orden]  # Plotly pinta la primera fila abajo: así el mejor queda arriba
-    sufijo = " %" if es_pct else " €"
-    texto = [[("—" if v != v else es(v, 1 if es_pct else 0, sufijo)) + ("*" if (v == v and k == k and k < 15) else "")
+    sufijo = " %" if es_pct else ("×" if es_retorno else " €")
+    texto = [[("—" if v != v else es(v, 0 if sufijo == " €" else 1, sufijo)) + ("*" if (v == v and k == k and k < 15) else "")
               for v, k in zip(fila_v, fila_n)] for fila_v, fila_n in zip(tabla.values, n.values)]
     escala = graficos.ESCALA if es_pct else [[0, graficos.ACENTO], [1, "#EFF5F5"]]
+    rango = {}
+    if es_retorno:  # umbral sano en 3×: por debajo, tono de alerta; por encima, verdes; a partir de 10×, el más oscuro
+        escala = [[0, "#f6c9b5"], [0.29, "#fbe7de"], [0.3, "#EFF5F5"], [1, graficos.ACENTO]]
+        rango = dict(zmin=0, zmax=10)
     fig = go.Figure(go.Heatmap(z=tabla.values, x=tabla.columns, y=tabla.index, text=texto, texttemplate="%{text}",
-                               colorscale=escala, showscale=False, hoverinfo="skip", xgap=2, ygap=2))
+                               colorscale=escala, showscale=False, hoverinfo="skip", xgap=2, ygap=2, **rango))
     graficos._limpio(fig, 60 + 44 * len(tabla))
     fig.update_layout(plot_bgcolor="#F1F5F5", xaxis=dict(side="top", showgrid=False), yaxis=dict(showgrid=False))
     comun.grafico(fig)
     nota_sin = f" No se muestra {', '.join(sin_dato)}: no tiene coste asignado." if sin_dato and not es_pct else ""
-    st.caption("Para preguntas como «¿subo Meta en Valencia?». * = menos de 15 contratos en esa celda: no decidir solo con "
-               f"ella. — = sin contratos. {'Más oscuro = convierte más.' if es_pct else 'Más oscuro = más barato.'}{nota_sin}")
+    explicacion = {MODOS[0]: "Retorno = margen que deja una familia en su primer año (facturación × margen bruto supuesto del 30 % × "
+                             "meses que sigue), dividido entre lo que costó captarla. Por encima de 3× es sano (verde); por debajo, naranja. Es la vista para decidir dónde invertir.",
+                   MODOS[1]: "Más oscuro = convierte más.",
+                   MODOS[2]: "Solo coste: no tiene en cuenta lo que factura ni lo que dura cada familia. Más oscuro = más barato."}[metrica]
+    st.caption(f"{explicacion} * = menos de 15 contratos en esa celda: no decidir solo con ella. — = sin contratos.{nota_sin}")
 
 st.divider()
 st.subheader("4. ¿Dónde?")
