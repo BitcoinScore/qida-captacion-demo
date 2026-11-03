@@ -56,7 +56,7 @@ Pruebas:
 QIDA_MODO=vivo .venv/Scripts/python -m eval.adversarios  # 39 casos adversarios del asistente (necesita Claude Code, ~4 min)
 ```
 
-**Si vas a auditarlo (a mano o con IA)**, el punto de partida es [`docs/pruebas-calidad.md`](docs/pruebas-calidad.md): qué se
+**Si vas a auditarlo**, el punto de partida es [`docs/pruebas-calidad.md`](docs/pruebas-calidad.md): qué se
 probó, qué se encontró y se corrigió, y qué **no** está cubierto ni resuelto (privacidad de los datos de salud, límites de
 uso, idiomas, accesibilidad pendiente). Dos cosas que conviene saber antes de buscar fallos:
 - Todo lo que escribe la familia o devuelve el modelo se trata como entrada no fiable: la ficha del lead pasa por
