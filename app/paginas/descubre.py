@@ -81,17 +81,17 @@ with st.container():
             pb = f["payback_meses"]
             meses = "—" if pb != pb or pb is None else f"{es(pb, 0)} {'mes' if pb == 1 else 'meses'}"
             filas.append({"Canal": f["canal"] + (" · pocos datos" if f["contratos"] < 50 else ""),
-                          "Familias": int(f["familias"]), "Contratos": int(f["contratos"]),
+                          "Familias": es(f["familias"], 0), "Contratos": es(f["contratos"], 0),
                           "Cuesta captarla": euros(f["cac_combinado"]), "Deja en 12 meses": euros(f["ltv_12m"]),
                           "Retorno": float(f["ltv_cac"]), "Se recupera en": meses})
         for _, f in sin_coste.iterrows():
-            filas.append({"Canal": f["canal"] + " · sin coste propio", "Familias": int(f["familias"]),
-                          "Contratos": int(f["contratos"]), "Cuesta captarla": "—",
+            filas.append({"Canal": f["canal"] + " · sin coste propio", "Familias": es(f["familias"], 0),
+                          "Contratos": es(f["contratos"], 0), "Cuesta captarla": "—",
                           "Deja en 12 meses": euros(f["ltv_12m"]), "Retorno": None, "Se recupera en": "—"})
         st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch", column_config={
-            "Familias": st.column_config.NumberColumn(format="localized"),
-            "Contratos": st.column_config.NumberColumn(format="localized"),
-            "Retorno": st.column_config.ProgressColumn("Retorno (veces lo invertido)", format="%.1f×", min_value=0, max_value=tope),
+            "Canal": st.column_config.TextColumn(width="medium"),
+            "Retorno": st.column_config.ProgressColumn("Retorno · veces lo invertido", format="%.1f×", min_value=0, max_value=tope,
+                                                       width="large"),
         })
         total = eco["gasto_total"].sum() / max(eco["contratos"].sum(), 1)
         st.caption(f"Coste medio de captar una familia en el periodo: **{es(total, 0, ' €')}** (en la portada, el del último mes). "
