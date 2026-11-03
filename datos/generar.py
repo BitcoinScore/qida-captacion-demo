@@ -25,6 +25,8 @@ CANALES = {
     "Recomendación":       (0.05, 0.38, 0.12, 0),
     "Teléfono directo":    (0.10, 0.24, 0.03, 0),
 }
+# Supuesto: coste mensual que no es de medios (equipo de contenido y SEO, acuerdos con prescriptores y aseguradoras,
+# incentivo por recomendación). Hace falta para el CAC combinado.
 COSTE_FIJO_MES = {"SEO / blog": 9000, "Prescriptor": 6000, "Aseguradora": 4000, "Recomendación": 1200}
 CIUDADES = {"Barcelona": 0.25, "Madrid": 0.25, "Valencia": 0.18, "Sevilla": 0.16, "A Coruña": 0.16}
 SERVICIOS = {
@@ -89,6 +91,8 @@ def generar(db: Path = DB):
         urgencia = rng.random() < (0.22 if canal == "Prescriptor" else 0.10)
         dependencia = rng.random() < 0.30
 
+        # Supuesto: el 8 % de las familias ya había dejado sus datos antes por otro canal (mismo teléfono).
+        # Ese primer contacto queda en el CRM como un lead más; el resultado se asocia al último contacto.
         if rng.random() < 0.08:
             antes = entrada - timedelta(days=rng.uniform(1, 10), hours=rng.uniform(0, 6))
             if antes >= INICIO:
@@ -143,6 +147,8 @@ def generar(db: Path = DB):
             (lead_id, alta.isoformat(timespec="minutes"), horas, ingreso, vinculada),
         )
 
+        # Bajas (por cualquier motivo). Supuesto: muchas en los 3 primeros meses (~22 % de base, según canal)
+        # y después un goteo de ~2,7 % al mes, algo menor si la familia paga con la prestación vinculada.
         p_baja_3m = max(0.05, 0.22 - ret_canal - (0.05 if vinculada else 0))
         if rng.random() < p_baja_3m:
             dias_baja = rng.uniform(10, 90)

@@ -42,6 +42,7 @@ AVISO_CHAT = ("Al escribir y dejarnos tu teléfono aceptas que Qida use lo que c
 PRIVACIDAD = ("No hace falta que nos cuentes detalles médicos. Puedes pedir que borremos tus datos cuando quieras. "
               "Política de privacidad (en la web real).")
 LOGO_B64 = base64.b64encode(comun.LOGO.read_bytes()).decode() if comun.LOGO.exists() else ""
+# El logotipo no va en el repositorio (marca de terceros): sin él, el nombre en la tipografía de los títulos.
 MARCA = (f"<img src='data:image/png;base64,{LOGO_B64}' height='34' alt='Qida'>" if LOGO_B64 else
          "<span class='marca-texto'>Qida</span>")
 ENLACE_TEL = f"tel:+34{TELEFONO.replace(' ', '')}"
@@ -295,7 +296,7 @@ def formulario_ventana() -> None:
 def vista_equipo(ficha: dict, cuando: str, opciones: bool = False) -> None:
     """Tarjeta «Vista del equipo» junto al chat (solo en la demo). Muestra lo que llegaría al CRM y, con `opciones`, deja atender una
     petición de borrado o empezar de cero."""
-    ficha = limpiar_ficha(ficha)
+    ficha = limpiar_ficha(ficha)  # defensa en profundidad: nunca se pinta HTML que venga del modelo
     with st.container(key="equipo-demo"):
         st.markdown(chat_ui.equipo_html(ficha, cuando), unsafe_allow_html=True)
         if opciones:
@@ -395,6 +396,7 @@ def chat():
         texto, nueva = conversacion.turno(historial, pregunta, asistente.responder, ahora, TELEFONO)
         revelar(zona, historial, texto, cuando_llamamos)
         pendientes.pop(0)
+        # La ficha la escribe el modelo a partir de lo que dice la familia: se valida antes de guardarla o pintarla
         st.session_state["ficha"] = ficha = limpiar_ficha(nueva) if nueva else ficha
         slot_resumen.markdown(chat_ui.resumen(ficha), unsafe_allow_html=True)
         marca = ficha.get("telefono") or ("escalar" if ficha.get("escalar") else None)
@@ -402,6 +404,8 @@ def chat():
             st.session_state.setdefault("lead_ids", []).append(guardar_lead("Chat", ficha, historial))
             st.session_state["guardado"] = marca
 
+    # Sin casilla que bloquee: en una urgencia o de madrugada, nadie debe tener que «aceptar» para pedir ayuda. Se informa antes de
+    # escribir y el consentimiento es el acto de dejar el teléfono (queda registrado con este texto en cada lead).
     st.markdown(f"<div class='qpie'>{html.escape(AVISO_CHAT)}</div>", unsafe_allow_html=True)
     vista_equipo(ficha, cuando_llamamos, opciones=True)
 

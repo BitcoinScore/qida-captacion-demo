@@ -130,6 +130,7 @@ with st.container():
     metrica = st.radio("Mostrar", MODOS, horizontal=True)
     es_pct, es_retorno = metrica == MODOS[1], metrica == MODOS[0]
     c = cruce.copy()
+    # Valor de una familia en 12 meses = facturación mensual media × margen bruto (supuesto) × meses que sigue (Kaplan-Meier)
     s_general = metricas._supervivencia(curvas)
     meses_canal = {k: (metricas._supervivencia(g) if len(g) >= 30 else s_general).sum() for k, g in curvas.groupby("canal")}
     c["valor_familia"] = c["ingreso"] * metricas.MARGEN_BRUTO * c["canal"].map(meses_canal).fillna(s_general.sum())

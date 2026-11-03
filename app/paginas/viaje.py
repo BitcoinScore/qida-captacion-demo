@@ -53,6 +53,9 @@ PRIMER_DATO = date(2025, 5, 1)
 comparable = a_desde >= PRIMER_DATO
 
 LIMITE_MADURO = date(2026, 9, 30)
+# Una sola definición en toda la pantalla: lo que hicieron las familias del periodo en sus 30 primeros días, contado hasta
+# hoy. Si alguna entró hace menos de 30 días, el periodo está «en curso» (aún puede contratar) y se compara con el periodo
+# anterior visto con la misma antigüedad (mismos días transcurridos desde su final).
 corte_ant = ULTIMO_DATO - (p_desde - a_desde)
 madura = (ULTIMO_DATO - p_hasta).days >= 30
 inicio_plazo = ULTIMO_DATO - timedelta(days=29)
@@ -86,7 +89,7 @@ act, ant, en_plazo, contactos, franjas, km, eco = calcular(
     p_desde, p_hasta, a_desde, a_hasta, corte_ant, inicio_plazo, madura, comun.DB.stat().st_mtime)
 n_meses = (LIMITE_MADURO.year - PRIMER_DATO.year) * 12 + LIMITE_MADURO.month - PRIMER_DATO.month + 1
 for _desde, _hasta in ((p_desde, p_hasta), (a_desde, a_hasta)):
-    detalles.familias(_desde, _hasta)
+    detalles.familias(_desde, _hasta)  # ojo: una expresión suelta aquí la pintaría Streamlit en pantalla («magic»)
 familias, contactadas, valoraciones, contratos = act["familias"], act["contactadas"], act["valoraciones"], act["contratos"]
 
 
@@ -283,6 +286,7 @@ st.caption("Con todo el histórico maduro (mayo de 2025 – septiembre de 2026),
            "una estimación con demasiado ruido.")
 noche_mes = n_noche / n_meses
 extra_mes = noche_mes * (con_dia / n_dia - con_noche / n_noche)
+# Tamaño del A/B: familias de noche por grupo para detectar la diferencia de llegada a valoración (95 %, potencia 80 %)
 d = tasa_dia - tasa_noche
 n_grupo = math.ceil((1.959964 + 0.841621) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
 fila = comun.Fila()

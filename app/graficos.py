@@ -132,6 +132,7 @@ def mapa(por_ciudad: pd.DataFrame) -> go.Figure:
     d["lon"] = d["ciudad"].map(lambda c: geo.COORDENADAS[c][1])
     d["meta"] = d["ciudad"].isin(geo.CIUDADES_META).map({True: "Sí", False: "No"})
     d["pct_txt"] = d["pct_alta"].map(es)
+    # Área proporcional al volumen: el diámetro crece con la raíz cuadrada (si no, el ojo exagera las diferencias)
     tamano = 60 * (d["leads"] / d["leads"].max()) ** 0.5
     con_meta = d["meta"] == "Sí"
     fig.add_trace(go.Scattermap(

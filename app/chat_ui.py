@@ -31,6 +31,8 @@ def hora(base: datetime, indice: int) -> str:
     return (base + timedelta(minutes=indice // 2)).strftime("%H:%M")
 
 
+# Rostro ilustrado (NO una foto): cálido y cercano, con auriculares de atención al cliente. Es una ilustración a propósito: una foto
+# de una persona real haría creer a la familia que habla con una persona, y el asistente debe declararse siempre como IA.
 AVATAR = (
     "<svg class='cara' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' role='img' aria-label='Ilustración del asistente'>"
     "<defs>"
