@@ -169,7 +169,6 @@ def equipo_html(ficha: dict, cuando: str) -> str:
 
 CSS = f"""
 <style>
-/* ── Panel anclado (solo cuando el diálogo contiene el chat) ───────────────────────────────────────────── */
 div[data-testid="stDialog"]:has(.qchat) {{background: transparent !important; pointer-events: none; align-items: flex-end !important;
   justify-content: flex-end !important; padding: 0 28px 28px 0 !important;}}
 div[data-testid="stDialog"]:has(.qchat) > div {{padding: 0 !important; margin: 0 !important; width: auto !important; max-width: none !important;
@@ -201,7 +200,6 @@ body:has(.qchat) .st-key-boton-chat {{display: none;}}
   div[data-testid="stDialog"]:has(.qchat) {{padding: 0 !important;}}
   section[role="dialog"]:has(.qchat) {{width: 100vw !important; max-width: 100vw !important; height: 100dvh !important; border-radius: 0 !important;}}
 }}
-/* ── Cabecera ──────────────────────────────────────────────────────────────────────────────────────────── */
 .qcab {{display: flex; align-items: center; gap: .85rem; padding: 1.15rem 3.4rem 1.05rem 1.2rem; color: white;
   background: linear-gradient(135deg, #004039 0%, #00665f 100%);}}
 .qav {{flex: none; width: 34px; height: 34px; border-radius: 50%; background: {MENTA}; color: {VERDE}; display: flex; align-items: center;
@@ -221,7 +219,6 @@ body:has(.qchat) .st-key-boton-chat {{display: none;}}
 .qurg .material-symbols-rounded {{font-size: 1.15rem;}}
 .qurg .flecha {{margin-left: auto; background: #B4501F; color: white; border-radius: 50%; padding: 3px; font-size: 1rem;}}
 .qurg:hover {{background: #FFE9DF;}}
-/* ── Resumen de lo anotado ─────────────────────────────────────────────────────────────────────────────── */
 .qresumen {{padding: .55rem 1.1rem .5rem; background: white; border-bottom: 1px solid {BORDE};}}
 .qresumen small {{display: block; color: {comun.GRIS_TEXTO}; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
   font-weight: 700; margin-bottom: .3rem;}}
@@ -230,7 +227,6 @@ body:has(.qchat) .st-key-boton-chat {{display: none;}}
   padding: .12rem .6rem .12rem .4rem; font-size: .78rem; font-weight: 600;}}
 .qetq .material-symbols-rounded {{font-size: .95rem;}}
 .qetq.alerta {{background: #FFF1EA; color: #8A3A16;}}
-/* ── Conversación ──────────────────────────────────────────────────────────────────────────────────────── */
 .qconv {{padding: 1rem 1rem .6rem; display: flex; flex-direction: column; gap: .15rem;}}
 .qdia {{align-self: center; font-size: .74rem; color: {comun.GRIS_TEXTO}; background: rgba(0,64,57,.07); border-radius: 99px;
   padding: .1rem .7rem; margin-bottom: .6rem;}}
@@ -250,7 +246,6 @@ body:has(.qchat) .st-key-boton-chat {{display: none;}}
 .qb.escribiendo i:nth-child(2) {{animation-delay: .15s;}} .qb.escribiendo i:nth-child(3) {{animation-delay: .3s;}}
 @keyframes qsalto {{0%, 60%, 100% {{transform: translateY(0); opacity: .5;}} 30% {{transform: translateY(-5px); opacity: 1;}}}}
 @media (prefers-reduced-motion: reduce) {{.qb.escribiendo i, .qav .punto {{animation: none;}}}}
-/* ── Vista del equipo: tarjeta junto al chat (solo en la demo) ───────────────────────────────────────────── */
 .st-key-equipo-demo {{display: none;}}
 @media (min-width: 1000px) {{
   section[role="dialog"]:has(.qchat) .st-key-equipo-demo {{display: block; position: fixed; right: calc(28px + 420px + 16px); bottom: 28px;
@@ -271,7 +266,6 @@ body:has(.qchat) .st-key-boton-chat {{display: none;}}
 .qeq-aviso.alerta {{background: #FFF1EA; color: #8A3A16;}}
 .qeq-pie {{color: {comun.GRIS_TEXTO}; font-size: .78rem; line-height: 1.45; margin: .8rem 0 .2rem !important;}}
 .st-key-equipo-demo button {{border-radius: 10px !important; font-size: .84rem !important; margin-top: .4rem;}}
-/* ── Respuestas rápidas, campo de texto y pie ──────────────────────────────────────────────────────────── */
 [class*="st-key-qchips"] {{padding: .55rem 1rem .15rem; background: #F4F8F8; display: flex; flex-wrap: wrap; gap: .4rem;}}
 .st-key-qchips-sigue {{display: none !important;}}
 section[role="dialog"]:has(.qfila.yo) .st-key-qchips-inicio {{display: none !important;}}

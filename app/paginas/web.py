@@ -58,7 +58,6 @@ header[data-testid="stHeader"] {{display: none;}}
 .block-container {{max-width: 1120px !important; padding: 0 1.5rem 7rem !important;}}
 .block-container > div > [data-testid="stVerticalBlock"] {{gap: 0 !important;}}
 [data-testid="stMarkdownContainer"] a {{text-decoration: none;}}
-/* Bandas de color a todo el ancho de la pantalla, sin provocar scroll horizontal */
 [class*="st-key-banda-"] {{position: relative; clip-path: inset(0 -100vmax);}}
 .st-key-banda-menta {{background: var(--menta); box-shadow: 0 0 0 100vmax var(--menta);}}
 .st-key-banda-verde {{background: var(--v); box-shadow: 0 0 0 100vmax var(--v); color: white;}}
@@ -69,7 +68,6 @@ header[data-testid="stHeader"] {{display: none;}}
   font-size: clamp(1.7rem, 3.4vw, 2.3rem); line-height: 1.2; text-align: center; margin: 0 0 .7rem; letter-spacing: -.01em;}}
 .seccion-web h2 b {{font-weight: 600; color: var(--v);}}
 .seccion-web .sub {{text-align: center; color: var(--gris); max-width: 640px; margin: 0 auto 2.2rem; font-size: 1.05rem; line-height: 1.55;}}
-/* Cabecera */
 .franja-demo {{display: flex; justify-content: center; gap: .6rem; flex-wrap: wrap; font-size: .78rem; padding: .55rem 0;
   color: var(--gris); border-bottom: 1px solid var(--borde);}}
 .franja-demo .chip-demo {{background: #fff4ef; border: 1px solid #f4c3b0; color: #a8441f; border-radius: 99px; padding: 1px 10px;}}
@@ -90,7 +88,6 @@ header[data-testid="stHeader"] {{display: none;}}
 .btn-w.blanco:hover {{background: var(--menta);}}
 .material-symbols-rounded.i {{font-size: 1.25em; vertical-align: -.2em;}}
 @media (max-width: 760px) {{.nav-web nav {{display: none;}} .nav-web {{justify-content: center;}}}}
-/* Portada */
 .hero-web {{padding: 4.6rem 0 3.4rem; text-align: center; position: relative;}}
 @media (max-width: 760px) {{.hero-web {{overflow: hidden;}}}}
 .hero-web::before, .hero-web::after {{content: ""; position: absolute; border-radius: 50%; z-index: 0; pointer-events: none;}}
@@ -108,14 +105,12 @@ header[data-testid="stHeader"] {{display: none;}}
 .hero-web .bajada {{font-size: 1.2rem; line-height: 1.55; color: #3f4f4e; max-width: 680px; margin: 0 auto 1.8rem;}}
 .hero-web .ctas {{display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap;}}
 .hero-web .precio-web {{margin-top: 1.4rem; color: var(--v); font-weight: 600; font-size: 1rem;}}
-/* Confianza */
 .confianza-web {{display: grid; grid-template-columns: repeat(4, 1fr); padding: 1.8rem 0 2.2rem;}}
 .confianza-web div {{text-align: center; padding: .3rem 1rem; border-left: 1px solid var(--borde); color: var(--gris); font-size: .92rem;}}
 .confianza-web div:first-child {{border-left: 0;}}
 .confianza-web b {{display: block; font-size: 1.9rem; font-weight: 500; color: var(--v); letter-spacing: -.01em; line-height: 1.15;}}
 @media (max-width: 760px) {{.confianza-web {{grid-template-columns: 1fr 1fr; row-gap: 1.2rem;}}
   .confianza-web div:nth-child(3) {{border-left: 0;}}}}
-/* Servicios */
 .svc {{border: 1px solid var(--borde); border-radius: 20px; background: white; min-height: 400px;
   box-shadow: 0 8px 28px rgba(0,64,57,.06);}}
 .svc .foto {{border-radius: 19px 19px 0 0; position: relative; height: 200px; background: var(--menta);}}
@@ -130,7 +125,6 @@ header[data-testid="stHeader"] {{display: none;}}
 .st-key-servicios button {{border-radius: 10px !important; border: 2px solid var(--v) !important; color: var(--v) !important;
   background: white !important; font-weight: 600; margin-top: .8rem;}}
 .st-key-servicios button:hover {{background: var(--menta) !important;}}
-/* Cómo funciona */
 .pasos-web {{display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: .5rem 0 1.2rem;}}
 .pasos-web .p {{padding: 0 .9rem 0 0; display: flex; flex-direction: column; gap: .4rem;}}
 .pasos-web .tx {{display: flex; flex-direction: column; gap: .35rem;}}
@@ -143,12 +137,10 @@ header[data-testid="stHeader"] {{display: none;}}
 .pasos-web span.t {{color: var(--gris); font-size: .94rem; line-height: 1.5;}}
 @media (max-width: 860px) {{.pasos-web {{grid-template-columns: 1fr; row-gap: 1.4rem;}} .pasos-web .linea::after {{display: none;}}
   .pasos-web .p {{flex-direction: row; gap: 1rem; align-items: flex-start;}} .pasos-web .linea {{margin: 0;}}}}
-/* Foto de portada */
 .hero-foto {{max-width: 920px; margin: 2.2rem auto 0; border-radius: 28px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,64,57,.18);
   aspect-ratio: 21 / 9; background: var(--menta);}}
 .hero-foto img {{width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block;}}
 @media (max-width: 760px) {{.hero-foto {{aspect-ratio: 4 / 3; border-radius: 20px;}}}}
-/* Asistente de noche: conversación real */
 .movil {{max-width: 560px; margin: 0 auto; background: white; border-radius: 28px; padding: 1rem 1.1rem 1.2rem;
   box-shadow: 0 24px 60px rgba(0,64,57,.16); border: 1px solid var(--borde);}}
 .movil .cab-chat {{display: flex; align-items: center; gap: .7rem; padding: .3rem .2rem .9rem; border-bottom: 1px solid var(--borde);
@@ -169,7 +161,6 @@ header[data-testid="stHeader"] {{display: none;}}
 .st-key-prueba {{padding-bottom: 3.6rem;}}
 .st-key-prueba button {{background: var(--v); color: white; border: 0; border-radius: 12px; font-weight: 600; padding: .75rem 1.4rem;}}
 .st-key-prueba button:hover {{background: #00302a;}}
-/* Línea de tiempo (cómo funciona) */
 .tl {{position: relative; max-width: 900px; margin: 1rem auto 1rem; padding: .5rem 0;}}
 .tl::before {{content: ""; position: absolute; left: 50%; top: 1.6rem; bottom: 1.6rem; width: 3px; transform: translateX(-50%);
   background: linear-gradient(180deg, var(--borde), var(--vm) 50%, var(--borde)); border-radius: 3px;}}
@@ -191,7 +182,6 @@ header[data-testid="stHeader"] {{display: none;}}
   .tl .it .nodo {{grid-column: 1; margin: 0;}}
   .tl .it.izq .tx, .tl .it.der .tx {{grid-column: 2; grid-row: 1; text-align: left; padding: 0 0 0 .6rem;}}
 }}
-/* Contacto (banda verde) */
 .contacto-cab {{text-align: center; padding: 4rem 0 1.4rem; color: white;}}
 .contacto-cab h2 {{font-family: 'DM Sans', Arial, sans-serif !important; font-weight: 300 !important; color: white !important;
   font-size: clamp(1.9rem, 4vw, 2.8rem); letter-spacing: -.01em; margin: 0 0 .8rem;}}
@@ -215,8 +205,6 @@ header[data-testid="stHeader"] {{display: none;}}
   max-width: 600px; margin: 1.2rem auto 0;}}
 .tit-form {{font-family: 'DM Sans', Arial, sans-serif !important; font-weight: 700 !important; color: var(--v); font-size: 1.35rem;
   margin: 0 0 .8rem !important; padding: 0 !important;}}
-/* Preguntas frecuentes */
-/* Pie */
 .pie-web {{display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2rem; padding: 2.8rem 0 1.4rem; font-size: .92rem; line-height: 1.6;}}
 .pie-web .marca-texto {{font-family: 'DM Serif Display', Georgia, serif; font-size: 1.9rem; color: white;}}
 .pie-web h3 {{font-family: 'DM Sans', Arial, sans-serif !important; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;

@@ -26,7 +26,6 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto
 
 ESTILO = f"""
 <style>
-/* Tipografías servidas desde el propio repo (app/static/fonts): el navegador no contacta con Google */
 @font-face {{font-family: 'DM Sans'; font-weight: 100 1000; font-style: normal; font-display: swap;
   src: url(app/static/fonts/DMSans-latin.woff2) format('woff2');}}
 @font-face {{font-family: 'DM Serif Display'; font-weight: 400; font-style: normal; font-display: swap;
@@ -37,14 +36,12 @@ html, body, p, li, label, td, th, input, textarea, button, .stMarkdown {{font-fa
 h1, h2, h3 {{font-family: 'DM Serif Display', Georgia, serif !important; color: {VERDE}; font-weight: 400 !important;
   letter-spacing: -.01em;}}
 h4 {{color: {VERDE}; font-weight: 700 !important;}}
-/* Títulos con el nivel semántico correcto (h2/h3 tras el h1) y el aspecto de siempre: ver comun.titulo() */
 [data-testid="stMarkdownContainer"] .tit {{font-family: 'DM Sans', Arial, sans-serif !important; color: {VERDE};
   font-weight: 700 !important; font-size: 1.25rem !important; line-height: 1.4 !important; margin: 1.8rem 0 .6rem !important;
   padding: 0 !important; letter-spacing: 0;}}
 [data-testid="stMarkdownContainer"] .tit.serif {{font-family: 'DM Serif Display', Georgia, serif !important;
   font-weight: 400 !important; font-size: 1.75rem !important; margin-top: 2rem !important; letter-spacing: -.01em;}}
 [data-testid="stMarkdownContainer"] .tit.menor {{font-size: 1.05rem !important; margin: 1.2rem 0 .4rem !important;}}
-/* Aire antes de cada subtítulo, en todas las pantallas (salvo si abre la columna o la página) */
 .block-container {{padding-top: 2.2rem !important;}}
 [data-testid="stMarkdownContainer"] h4 {{margin-top: 1.8rem !important; padding-top: 0 !important;}}
 [data-testid="stMarkdownContainer"] h3 {{margin-top: 2rem !important;}}
@@ -57,7 +54,6 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
   box-sizing: border-box; display: flex; flex-direction: column;}}
 .fila-kpi-caja {{container-type: inline-size; margin-bottom: 4px;}}
 .fila-kpi {{display: grid; gap: 12px; align-items: stretch;}}
-/* Seis tarjetas solo caben en una fila si hay sitio de verdad (se mide el ancho del contenido, no el de la ventana) */
 @container (max-width: 1250px) {{.fila-kpi.ancha {{grid-template-columns: repeat(3, 1fr) !important;}}}}
 @container (max-width: 640px) {{.fila-kpi {{grid-template-columns: repeat(2, 1fr) !important;}}}}
 .kpi .cabeza {{display: flex; align-items: center; gap: 10px; min-height: 38px;}}
@@ -72,11 +68,9 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
 .kpi .tend {{font-size: .82rem; color: {GRIS_TEXTO}; margin-bottom: 2px;}}
 .kpi .sub {{font-size: .82rem; color: {GRIS_TEXTO};}}
 .kpi .mas {{margin-top: auto; padding-top: 8px; font-size: .8rem; font-weight: 600; color: {VERDE_TEXTO};}}
-/* Tarjetas pulsables: cada una es un contenedor con un botón invisible encima que abre su ventana de detalle */
 [class*="st-key-filai-"] {{display: grid !important; gap: 12px !important; align-items: stretch;}}
 [class*="st-key-filai-"] > div {{display: flex; flex-direction: column;}}
 @media (max-width: 760px) {{[class*="st-key-filai-"] {{grid-template-columns: repeat(2, 1fr) !important;}}}}
-/* móvil: una tarjeta por fila y cifras que se pueden partir, para que nada se salga de la pantalla */
 @media (max-width: 480px) {{
   [class*="st-key-filai-"] {{grid-template-columns: 1fr !important;}}
   .fila-kpi {{grid-template-columns: 1fr !important;}}
@@ -85,7 +79,6 @@ h4 {{color: {VERDE}; font-weight: 700 !important;}}
   .kpi .etiqueta {{overflow-wrap: anywhere;}}
 }}
 [class*="st-key-tarjeta-"] {{position: relative; gap: 0 !important; flex: 1 1 auto;}}
-/* la tarjeta llena su celda: toda la cadena de envoltorios de Streamlit hasta .kpi se estira */
 [class*="st-key-tarjeta-"] div:has(.kpi) {{display: flex !important; flex-direction: column; flex: 1 1 auto; width: 100%;
   margin: 0 !important;}}
 [class*="st-key-tarjeta-"] .kpi {{flex: 1 1 auto;}}
