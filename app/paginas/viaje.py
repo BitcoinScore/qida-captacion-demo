@@ -9,14 +9,13 @@ import graficos
 from comun import es
 from motor import metricas
 
-ULTIMO_DATO = date(2026, 11, 2)  # «hoy» en la demo: último día con datos
+ULTIMO_DATO = date(2026, 11, 2)
 def meses_atras(d: date, n: int) -> date:
     """Primer día del mes que está n meses antes del mes de `d`."""
     total = d.year * 12 + d.month - 1 - n
     return date(total // 12, total % 12 + 1, 1)
 
 
-# Días sueltos y semana: hasta hoy. Meses: meses naturales completos (el último, octubre); «Este mes», del 1 a hoy.
 OPCIONES = {"Hoy": "hoy", "Ayer": "ayer", "Última semana": "semana", "Este mes": "mes_en_curso", "Último mes": 1,
             "Últimos 3 meses": 3, "Últimos 6 meses": 6, "Último año": 12, "Personalizado": None}
 eleccion = st.sidebar.selectbox("Periodo de los indicadores", list(OPCIONES), index=list(OPCIONES).index("Último mes"),
@@ -51,15 +50,12 @@ else:
 duracion = (p_hasta - p_desde).days + 1
 mes_completo = n_meses_periodo == 1
 PRIMER_DATO = date(2025, 5, 1)
-comparable = a_desde >= PRIMER_DATO  # si el periodo anterior cae antes de los datos, compararlo engañaría
+comparable = a_desde >= PRIMER_DATO
 
-LIMITE_MADURO = date(2026, 9, 30)  # histórico maduro: meses completos con 30 días de margen (vista `cohorte`)
-# Una sola definición en toda la pantalla: lo que hicieron las familias del periodo en sus 30 primeros días, contado hasta
-# hoy. Si alguna entró hace menos de 30 días, el periodo está «en curso» (aún puede contratar) y se compara con el periodo
-# anterior visto con la misma antigüedad (mismos días transcurridos desde su final).
+LIMITE_MADURO = date(2026, 9, 30)
 corte_ant = ULTIMO_DATO - (p_desde - a_desde)
 madura = (ULTIMO_DATO - p_hasta).days >= 30
-inicio_plazo = ULTIMO_DATO - timedelta(days=29)  # quien entró desde este día aún no ha cumplido sus 30 días
+inicio_plazo = ULTIMO_DATO - timedelta(days=29)
 
 
 def historico(con):
@@ -89,8 +85,8 @@ def calcular(p_desde, p_hasta, a_desde, a_hasta, corte_ant, inicio_plazo, madura
 act, ant, en_plazo, contactos, franjas, km, eco = calcular(
     p_desde, p_hasta, a_desde, a_hasta, corte_ant, inicio_plazo, madura, comun.DB.stat().st_mtime)
 n_meses = (LIMITE_MADURO.year - PRIMER_DATO.year) * 12 + LIMITE_MADURO.month - PRIMER_DATO.month + 1
-for _desde, _hasta in ((p_desde, p_hasta), (a_desde, a_hasta)):  # precalienta las ventanas de detalle (en caché)
-    detalles.familias(_desde, _hasta)  # ojo: una expresión suelta aquí la pintaría Streamlit en pantalla («magic»)
+for _desde, _hasta in ((p_desde, p_hasta), (a_desde, a_hasta)):
+    detalles.familias(_desde, _hasta)
 familias, contactadas, valoraciones, contratos = act["familias"], act["contactadas"], act["valoraciones"], act["contratos"]
 
 
@@ -103,14 +99,13 @@ ltv_medio = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["contratos"].sum()
 ltv_cac = (eco["ltv_12m"] * eco["contratos"]).sum() / eco["gasto_total"].sum()
 (n_dia, val_dia, con_dia), (n_noche, val_noche, con_noche) = franjas[0], franjas[1]
 pct_noche = act["noche"]
-tasa_dia, tasa_noche = val_dia / n_dia, val_noche / n_noche  # llegan a valoración
+tasa_dia, tasa_noche = val_dia / n_dia, val_noche / n_noche
 
 comun.cabecera("Viaje de la familia", "Con datos de ejemplo, la mayor fuga está entre la primera llamada y la valoración",
                "dirección y marketing",
                f"De cada 100 familias con las que habla un asesor/a familiar, solo {es(pct(valoraciones, contactadas), 0)} "
                f"llegan a la valoración. Y el {es(pct_noche, 0)} % pide ayuda cuando no hay nadie al teléfono.")
 
-# ── 1. Lo primero que se mira: seis indicadores del periodo elegido ───────────────────────────────────────────────
 def corta(d: date) -> str:
     return f"{d.day} {comun.MESES[d.month - 1][:3]} {d.year}"
 
@@ -128,15 +123,15 @@ elif mes_completo:
 elif n_meses_periodo:
     titulo = (f"{eleccion.lower()}: {corta(p_desde)} – {corta(p_hasta)} · frente a los {n_meses_periodo} meses anteriores"
               if n_meses_periodo < 12 else f"último año: {corta(p_desde)} – {corta(p_hasta)} · frente al año anterior")
-else:  # periodo personalizado
+else:
     titulo = f"{corta(p_desde)} – {corta(p_hasta)} · frente al periodo anterior de la misma duración"
-if not comparable:  # los datos empiezan en mayo de 2025: no hay periodo anterior completo
+if not comparable:
     titulo = titulo.split(" · frente")[0] + " · sin periodo anterior completo para comparar (los datos empiezan en mayo de 2025)"
 st.markdown(f"<div class='seccion'>{titulo}</div>", unsafe_allow_html=True)
 if act["familias"] == 0:
     comun.nota("No hay familias en ese periodo. Elige otras fechas.", "alerta")
     st.stop()
-OBJ_LLAMADAS, OBJ_CONVERSION, OBJ_COSTE = 50, 15, 400  # objetivos de ejemplo
+OBJ_LLAMADAS, OBJ_CONVERSION, OBJ_COSTE = 50, 15, 400
 
 
 def var(actual, anterior):
@@ -166,8 +161,6 @@ comun.kpi(k[2], "Llamadas en < 1 h", f"{es(act['rapidas'], 0)} %", f"objetivo: {
           var(act["rapidas"], ant["rapidas"]), alerta=lejos, estado=e[0],
           texto_estado="muy lejos del objetivo" if lejos else e[1], icono="phone_in_talk", frente=frente,
           detalle=lambda: detalles.llamadas(p_desde, p_hasta))
-# Contratan y coste: con el periodo en curso no se juzgan contra el objetivo (aún faltan contratos), pero se enseñan y se
-# comparan con el periodo anterior a la misma altura
 e = estado(act["conversion"], OBJ_CONVERSION) if madura else ("curso", "en curso")
 comun.kpi(k[3], "Contratan", f"{es(act['conversion'])} %",
           f"{es(contratos, 0)} contratos · objetivo: {OBJ_CONVERSION} %" if madura else
@@ -193,7 +186,6 @@ st.caption("Objetivos de ejemplo. Verde: cumple su objetivo; naranja: no lo cump
            "flechas comparan con el periodo anterior visto con la misma antigüedad, así un periodo reciente no sale peor solo "
            "por ser reciente. La permanencia es histórica.")
 
-# ── 2. El embudo ───────────────────────────────────────────────────────────────────────────────────────────────
 rango = corta(p_desde) if duracion == 1 else f"{corta(p_desde)} – {corta(p_hasta)}"
 comun.titulo(f"Dónde se pierden las familias · {rango}")
 if not madura:
@@ -217,7 +209,6 @@ ETAPAS = [
      "arreglo": "→ Seguimiento y pedir que nos recomienden"},
     {"nombre": "Siguen al año", "valor": round(contratos * r12), "estimado": True},
 ]
-# Cada etapa se puede pulsar: abre quién se queda en ella y por qué (la clave cambia tras abrir, para que no se reabra sola)
 n_clic = st.session_state.setdefault("embudo_clic", 0)
 
 
@@ -236,7 +227,6 @@ st.caption("Pulsa una etapa para ver quién se queda en ella y por qué. Cada pa
            "pedir ayuda (o hasta hoy, si aún no han pasado). Las dos "
            "últimas etapas (trazo discontinuo) son estimaciones con la curva de permanencia histórica.")
 
-# ── 3. El viaje, etapa a etapa (service blueprint) ────────────────────────────────────────────────────────────
 comun.titulo("El viaje, etapa a etapa")
 ETAPAS_VIAJE = [
     ("Nos descubre", es(familias, 0),
@@ -260,7 +250,7 @@ ETAPAS_VIAJE = [
      "Alerta de baja y petición de recomendación", "Permanencia y recomendaciones", "Sigue a los 3 meses"),
 ]
 FILAS = [("La familia", 2), ("Qida hoy", 3), ("Qué construiría", 4), ("Cómo lo mido", 5), ("Ejemplo: Lucía", 6)]
-grave = {2}  # la etapa con la gran fuga (de la llamada a la valoración)
+grave = {2}
 cabecera = "".join(
     f"<th style='border-top:4px solid {comun.NARANJA if i in grave else comun.VERDE}'>"
     f"<div style='font-size:.75rem;color:{comun.GRIS_TEXTO}'>{i + 1}</div>{e[0]}"
@@ -288,13 +278,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── 4. Caso de negocio y cómo se probaría ────────────────────────────────────────────────────────────────────────
 comun.titulo("Qué valdría arreglar la noche, y cómo lo probaría")
 st.caption("Con todo el histórico maduro (mayo de 2025 – septiembre de 2026), no con el periodo elegido: un solo mes daría "
            "una estimación con demasiado ruido.")
 noche_mes = n_noche / n_meses
 extra_mes = noche_mes * (con_dia / n_dia - con_noche / n_noche)
-# Tamaño del A/B: familias de noche por grupo para detectar la diferencia de llegada a valoración (95 %, potencia 80 %)
 d = tasa_dia - tasa_noche
 n_grupo = math.ceil((1.959964 + 0.841621) ** 2 * (tasa_dia * (1 - tasa_dia) + tasa_noche * (1 - tasa_noche)) / d ** 2)
 fila = comun.Fila()

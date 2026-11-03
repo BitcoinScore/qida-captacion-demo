@@ -27,7 +27,7 @@ def cargar(nombre: str) -> pd.DataFrame:
 
 
 VERSIONES = ["v1 (revisor v1)", "v1 (revisor v2)", "v2", "v3"]
-CONJUNTOS = [  # (nombre, color, {versión: fichero})
+CONJUNTOS = [
     ("Casos de ajuste (60)", graficos.PERDIDA, {"v1 (revisor v1)": "resultados_v1.json",
                                                "v1 (revisor v2)": "resultados_v1_juez2.json",
                                                "v2": "resultados_v2.json", "v3": "resultados_v3.json"}),
@@ -75,7 +75,7 @@ comun.titulo("Respuestas correctas por versión (reglas + revisor automático), 
 CORTO = {CONJUNTOS[0][0]: "casos de ajuste", CONJUNTOS[1][0]: "casos nuevos 1", CONJUNTOS[2][0]: "casos nuevos 2"}
 fig = go.Figure()
 orden = []
-for v in VERSIONES:  # una categoría por barra, en orden de versión: sin huecos
+for v in VERSIONES:
     for conjunto, _, _ in CONJUNTOS:
         if not datos.get((conjunto, v), pd.DataFrame()).empty:
             orden.append(f"<b>{v}</b><br>{CORTO[conjunto]}")

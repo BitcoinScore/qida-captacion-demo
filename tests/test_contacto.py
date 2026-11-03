@@ -26,16 +26,16 @@ def test_telefono(texto, esperado):
 
 
 @pytest.mark.parametrize("momento, abierto, cuando", [
-    (datetime(2026, 11, 3, 8, 59), False, "hoy a partir de las 9:00"),     # martes, un minuto antes de abrir
+    (datetime(2026, 11, 3, 8, 59), False, "hoy a partir de las 9:00"),
     (datetime(2026, 11, 3, 9, 0), True, "en menos de 24 horas, dentro del horario de atención"),
     (datetime(2026, 11, 3, 19, 59), True, "en menos de 24 horas, dentro del horario de atención"),
-    (datetime(2026, 11, 3, 20, 0), False, "mañana a partir de las 9:00"),  # cierre entre semana
-    (datetime(2026, 11, 3, 0, 0), False, "hoy a partir de las 9:00"),      # medianoche
-    (datetime(2026, 11, 7, 17, 59), True, "en menos de 24 horas, dentro del horario de atención"),   # sábado
-    (datetime(2026, 11, 7, 18, 0), False, "mañana a partir de las 9:00"),  # sábado cierra a las 18:00
-    (datetime(2026, 12, 25, 12, 0), True, "en menos de 24 horas, dentro del horario de atención"),   # festivo
-    (datetime(2026, 12, 25, 19, 0), False, "mañana a partir de las 9:00"),  # festivo: cierra a las 18:00
-    (datetime(2026, 11, 1, 18, 30), False, "mañana a partir de las 9:00"),  # domingo y festivo
+    (datetime(2026, 11, 3, 20, 0), False, "mañana a partir de las 9:00"),
+    (datetime(2026, 11, 3, 0, 0), False, "hoy a partir de las 9:00"),
+    (datetime(2026, 11, 7, 17, 59), True, "en menos de 24 horas, dentro del horario de atención"),
+    (datetime(2026, 11, 7, 18, 0), False, "mañana a partir de las 9:00"),
+    (datetime(2026, 12, 25, 12, 0), True, "en menos de 24 horas, dentro del horario de atención"),
+    (datetime(2026, 12, 25, 19, 0), False, "mañana a partir de las 9:00"),
+    (datetime(2026, 11, 1, 18, 30), False, "mañana a partir de las 9:00"),
 ])
 def test_horario(momento, abierto, cuando):
     assert horario(momento)[0] is abierto

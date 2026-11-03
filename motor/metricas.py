@@ -7,8 +7,8 @@ import sqlite3
 
 import pandas as pd
 
-CORTE = "2026-11-02"  # «hoy» en la demo: último día con datos
-MARGEN_BRUTO = 0.30   # supuesto: la demo no tiene costes de cuidadoras; con el margen real el LTV cambia
+CORTE = "2026-11-02"
+MARGEN_BRUTO = 0.30
 MESES_LTV = 12
 
 
@@ -154,7 +154,7 @@ def economia_por_canal(con: sqlite3.Connection, ciudades: list[str], desde: str 
         cac = f["gasto_total"] / f["contratos"] if f["contratos"] else float("nan")
         acumulado = margen_mes.cumsum()
         payback.append(int((acumulado < cac).sum()) + 1 if cac and cac == cac and (acumulado >= cac).any() else None)
-    contratos = df["contratos"].where(df["contratos"] > 0)  # sin contratos → sin cociente (nunca «inf»)
+    contratos = df["contratos"].where(df["contratos"] > 0)
     df["ltv_12m"] = ltv
     df["permanencia_propia"] = fiable
     df["coste_por_familia"] = (df["gasto_total"] / df["familias"]).where(df["gasto_total"] > 0)

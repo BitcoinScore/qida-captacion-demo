@@ -52,7 +52,7 @@ def test_borrado_por_id_y_por_telefono(bd):
 def test_bases_antiguas_sin_columnas_de_consentimiento_se_actualizan(bd):
     bd.execute("CREATE TABLE leads_web (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT, canal TEXT, ficha TEXT, conversacion TEXT)")
     bd.execute("INSERT INTO leads_web (fecha, canal, ficha, conversacion) VALUES ('x','Chat','{}','[]')")
-    assert leads.purgar(bd) == 0            # los anteriores a existir `creado` no se borran por error
+    assert leads.purgar(bd) == 0
     leads.guardar(bd, AHORA, "Chat", {}, None, "c")
     assert bd.execute("SELECT COUNT(*) FROM leads_web").fetchone()[0] == 2
 
@@ -67,7 +67,7 @@ def test_limites_del_chat(texto, enviados, ok):
 
 def test_limites_del_formulario():
     assert limites.validar_formulario(0, 10)[0] is True
-    assert limites.validar_formulario(0, 0.5)[0] is False                         # demasiado rápido para una persona
+    assert limites.validar_formulario(0, 0.5)[0] is False
     assert limites.validar_formulario(limites.MAX_ENVIOS_FORMULARIO, 60)[0] is False
 
 
@@ -77,8 +77,7 @@ def test_el_modelo_solo_recibe_los_ultimos_mensajes():
     assert limites.historial_para_el_modelo(historial)[-1]["texto"] == "99"
 
 
-# ── Un turno del chat no deja preguntas sin contestar ────────────────────────────────────────────────────────────────
-from motor import conversacion  # noqa: E402
+from motor import conversacion
 
 
 def test_turno_guarda_pregunta_y_respuesta_juntas():

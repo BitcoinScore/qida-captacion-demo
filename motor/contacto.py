@@ -6,7 +6,6 @@ fiable: la ficha se valida antes de guardarla en el CRM o de pintarla.
 import re
 from datetime import datetime
 
-# Festivos nacionales de referencia (cada comunidad tiene los suyos; los locales no están)
 FESTIVOS = {(1, 1), (1, 6), (5, 1), (8, 15), (10, 12), (11, 1), (12, 6), (12, 8), (12, 25)}
 SERVICIOS_FICHA = {"Por horas", "Interna", "Fin de semana", "Nocturna"}
 _TEXTO = re.compile(r"[^\w .'\-ÁÉÍÓÚÜÑáéíóúüñ]", re.UNICODE)

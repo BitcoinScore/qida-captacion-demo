@@ -20,9 +20,9 @@ def asegurar_tabla(con: sqlite3.Connection) -> None:
     con.execute("CREATE TABLE IF NOT EXISTS leads_web (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT, canal TEXT, "
                 "ficha TEXT, conversacion TEXT)")
     existentes = {f[1] for f in con.execute("PRAGMA table_info(leads_web)")}
-    for nombre, tipo in COLUMNAS_NUEVAS.items():  # bases creadas antes de existir el consentimiento
+    for nombre, tipo in COLUMNAS_NUEVAS.items():
         if nombre not in existentes:
-            con.execute(f"ALTER TABLE leads_web ADD COLUMN {nombre} {tipo}")  # noqa: S608 · nombres fijos del módulo
+            con.execute(f"ALTER TABLE leads_web ADD COLUMN {nombre} {tipo}")
 
 
 def purgar(con: sqlite3.Connection, ahora_real: datetime | None = None) -> int:

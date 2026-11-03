@@ -17,7 +17,6 @@ def test_kaplan_meier_sin_bajas_es_100():
 
 
 def test_kaplan_meier_no_sesga_con_censura():
-    # 100 familias; la mitad se da de baja en el mes 1; la otra mitad lleva 0,5 meses (censuradas, no son bajas)
     d = pd.DataFrame({"meses": [0.5] * 50 + [0.7] * 50, "baja": [0] * 50 + [1] * 50})
     km = metricas.kaplan_meier(d, hasta=1).set_index("mes")["pct_siguen"]
     assert km[1] == 50.0
@@ -35,7 +34,7 @@ def test_economia_por_canal(con):
     assert (pago["cac_pago"] > 0).all()
     ambos = eco.dropna(subset=["cac_combinado", "cac_pago"])
     assert (ambos["cac_combinado"] >= ambos["cac_pago"]).all()
-    assert not eco[["cac_combinado", "ltv_cac"]].isin([float("inf")]).any().any()  # nunca «inf»
+    assert not eco[["cac_combinado", "ltv_cac"]].isin([float("inf")]).any().any()
     assert (eco["ic_bajo"] <= eco["pct"]).all() and (eco["pct"] <= eco["ic_alto"]).all()
 
 
@@ -49,4 +48,4 @@ def test_kpis_periodo_madurez(con):
     cerrado = metricas.kpis_periodo(con, "2026-08-01", "2026-08-30")
     assert reciente["familias"] > 0 and reciente["dias"] == 30
     assert not reciente["madura"] and cerrado["madura"]
-    assert reciente["conversion"] < cerrado["conversion"]  # aún no han tenido tiempo de contratar
+    assert reciente["conversion"] < cerrado["conversion"]

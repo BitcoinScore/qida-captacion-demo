@@ -3,11 +3,11 @@
 Son límites por sesión del navegador: en producción irían también por IP y por día en el servidor (y, en el formulario, un
 captcha o una comprobación de bots gestionada, que no se añade a la demo para no meter otro tercero).
 """
-MAX_CARACTERES = 600        # por mensaje del chat
-MAX_MENSAJES = 30           # mensajes de la familia por conversación
-MAX_ENVIOS_FORMULARIO = 5   # por sesión
-ESPERA_MINIMA_FORMULARIO = 3.0  # segundos entre que se pinta el formulario y se envía: una persona no es tan rápida
-MENSAJES_RECIENTES = 20     # lo que se manda al modelo: acota el coste y el tamaño del prompt
+MAX_CARACTERES = 600
+MAX_MENSAJES = 30
+MAX_ENVIOS_FORMULARIO = 5
+ESPERA_MINIMA_FORMULARIO = 3.0
+MENSAJES_RECIENTES = 20
 
 
 def validar_mensaje(texto: str, enviados: int) -> tuple[bool, str]:

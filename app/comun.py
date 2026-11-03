@@ -17,10 +17,8 @@ CIUDADES = ["Barcelona", "Madrid", "Valencia", "Sevilla", "A Coruña"]
 AVISO = "Datos **inventados** para la demo, con la forma de un CRM tipo Odoo (el que Qida cita en su oferta de empleo). No son datos de Qida."
 LOGO = Path(__file__).resolve().parent / "assets" / "qida_logo.png"
 
-# Identidad de Qida (qida.es, 02-11-2026)
 VERDE, VERDE_MEDIO, VERDE_CLARO, FONDO, BORDE, NARANJA, TEXTO = (
     "#004039", "#338581", "#99C2C0", "#EFF5F5", "#CCE0DF", "#ea6d43", "#333333")
-# Tonos para TEXTO que cumplen WCAG AA (≥4,5:1 sobre blanco); los de marca se quedan para barras, bordes y fondos.
 VERDE_TEXTO, NARANJA_TEXTO, GRIS_TEXTO = "#2B6E69", "#B4501F", "#5B6B6A"
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
          "noviembre", "diciembre"]
@@ -193,7 +191,7 @@ def kpi(col, etiqueta: str, valor: str, sub: str = "", tendencia: float | None =
         flecha = (f"<div class='tend'><span class='{'bien' if mejora else 'mal'}'>{'▲' if tendencia > 0 else '▼'} "
                   f"{es(abs(tendencia))}{unidad_tendencia}</span> {frente}</div>")
     simbolo = f"<span class='icono material-symbols-rounded'>{icono}</span>" if icono else ""
-    estado = "alerta" if alerta else estado  # bien · mal · alerta · curso · None (sin objetivo o en curso: cifra en negro)
+    estado = "alerta" if alerta else estado
     chip = f"<span class='estado'>{texto_estado}</span>" if estado and texto_estado else ""
     mas = "<div class='mas'>Ver detalle ›</div>" if detalle else ""
     html = (f"<div class='kpi{' ' + estado if estado else ''}'><div class='cabeza'>{simbolo}"
@@ -291,21 +289,20 @@ class Fila:
         self.detalles: list = []
         self.nombres: list[str] = []
 
-    def agregar(self, html: str, detalle=None, nombre: str = "") -> None:  # lo llama kpi()
+    def agregar(self, html: str, detalle=None, nombre: str = "") -> None:
         self.tarjetas.append(html)
         self.detalles.append(detalle)
         self.nombres.append(nombre)
 
     def pintar(self) -> None:
         n = len(self.tarjetas)
-        # Cuantas menos tarjetas, más grande la cifra (si no, la caja se queda vacía)
         tam = {1: "3.6rem", 2: "3.4rem", 3: "3rem", 4: "2.7rem"}.get(n, "2.6rem")
         if any(self.detalles):
             tres = (f"@media (max-width: 1650px) {{.st-key-filai-{self.clave} {{grid-template-columns: repeat(3, 1fr) !important}}}}"
                     if n >= 5 else "")
             st.markdown(f"<style>.st-key-filai-{self.clave} {{grid-template-columns: repeat({n}, 1fr); --tam-valor: {tam}}}"
                         f"{tres}</style>", unsafe_allow_html=True)
-            @st.fragment  # pulsar una tarjeta recarga solo esta fila, no toda la pantalla: la ventana se abre mucho antes
+            @st.fragment
             def tarjetas() -> None:
                 abrir = None
                 with st.container(key=f"filai-{self.clave}"):

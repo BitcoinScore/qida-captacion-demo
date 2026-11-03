@@ -103,7 +103,6 @@ def simular_cola_manana(test: pd.DataFrame, llamadas_por_hora: int = 6) -> dict:
     Simulación con supuestos: altas esperadas = score × efecto de la espera (relativo a una espera de 0).
     """
     cola = test[test["fuera_horario"] == 1].copy()
-    # hora de apertura: el siguiente día laborable/festivo a las 9:00
     apertura = cola["fecha_entrada"].dt.normalize() + pd.Timedelta(hours=9)
     apertura = apertura.where(cola["fecha_entrada"].dt.hour < 9, apertura + pd.Timedelta(days=1))
     cola["apertura"] = apertura

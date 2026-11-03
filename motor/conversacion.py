@@ -19,7 +19,7 @@ def turno(historial: list[dict], pregunta: str, responder, ahora: datetime, tele
     candidato = historial + [{"rol": "usuario", "texto": pregunta}]
     try:
         texto, ficha = responder(limites.historial_para_el_modelo(candidato), ahora)
-    except Exception:  # noqa: BLE001 · la familia nunca ve un error técnico; el detalle va al registro
+    except Exception:
         logging.exception("Fallo del asistente")
         texto, ficha = RESPUESTA_DE_RESPALDO.format(telefono=telefono), {}
     historial.append({"rol": "usuario", "texto": pregunta})

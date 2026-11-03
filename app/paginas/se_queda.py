@@ -12,7 +12,7 @@ ciudades = comun.selector_ciudades()
 with comun.conexion() as con:
     d = metricas.duraciones(con, ciudades)
 km = metricas.kaplan_meier(d)
-tri = metricas.triangulo(d).drop(columns=0).dropna(how="all")  # el mes 0 siempre es 100 %
+tri = metricas.triangulo(d).drop(columns=0).dropna(how="all")
 s = km.set_index("mes")["pct_siguen"]
 
 comun.cabecera("Retención", f"Con datos de ejemplo, {es(s.get(12, s.iloc[-1]), 0)} de cada 100 familias siguen con Qida al año",

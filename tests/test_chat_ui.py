@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
-import chat_ui  # noqa: E402
+import chat_ui
 
 BASE = datetime(2026, 11, 3, 23, 10)
 

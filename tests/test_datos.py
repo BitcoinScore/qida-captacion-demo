@@ -4,7 +4,7 @@
 def test_familias_deduplicadas(con):
     contactos, familias = con.execute("SELECT (SELECT COUNT(*) FROM leads), (SELECT COUNT(*) FROM familias)").fetchone()
     assert familias == 15000
-    assert contactos > familias  # hay familias que entraron por dos canales
+    assert contactos > familias
 
 
 def test_cohorte_excluye_el_mes_sin_madurar(con):
@@ -19,7 +19,6 @@ def test_ventana_de_30_dias(con):
 
 
 def test_resultado_solo_en_el_ultimo_contacto(con):
-    # El primer contacto de una familia duplicada nunca tiene resultado asociado (atribución al último contacto)
     con_resultado = con.execute(
         """SELECT COUNT(*) FROM leads l JOIN altas a ON a.lead_id = l.id
            WHERE l.id NOT IN (SELECT id FROM familias)""").fetchone()[0]

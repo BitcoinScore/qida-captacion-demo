@@ -14,7 +14,6 @@ VERDE, MENTA, BORDE = comun.VERDE, "#EFF5F5", comun.BORDE
 _NEGRITA = re.compile(r"\*\*(.+?)\*\*")
 
 
-# 112 y 024 sueltos (no dentro de un teléfono como «656 112 233» ni de una cifra mayor) se convierten en enlaces que marcan.
 _NUM_EMERGENCIA = re.compile(r"(?<!\d)(?<!\d )(?<!\d-)(?<!\d\.)(112|024)(?!\d)(?! \d)(?!-\d)(?!\.\d)")
 
 
@@ -32,8 +31,6 @@ def hora(base: datetime, indice: int) -> str:
     return (base + timedelta(minutes=indice // 2)).strftime("%H:%M")
 
 
-# Rostro ilustrado (NO una foto): cálido y cercano, con auriculares de atención al cliente. Es una ilustración a propósito: una foto
-# de una persona real haría creer a la familia que habla con una persona, y el asistente debe declararse siempre como IA.
 AVATAR = (
     "<svg class='cara' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' role='img' aria-label='Ilustración del asistente'>"
     "<defs>"
@@ -299,7 +296,6 @@ section[role="dialog"]:has(.qchat) [data-testid="stSelectbox"] {{padding: .6rem 
 """
 
 
-# ── Lanzador con bocadillo de saludo (abajo a la derecha, como los chats de las empresas top) ─────────────────────────
 def saludo(abierto: bool, cuando: str, ahora: datetime) -> str:
     if abierto:
         return "¿Buscas ayuda para cuidar a un familiar? Cuéntame qué necesitas y lo orientamos en un minuto."

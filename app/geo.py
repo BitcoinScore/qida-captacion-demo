@@ -12,4 +12,4 @@ COORDENADAS = {
     "Burgos": (42.344, -3.697), "Valladolid": (41.652, -4.724), "Santander": (43.462, -3.810),
 }
 
-CIUDADES_META = {"A Coruña", "Valencia", "Sevilla"}  # anuncios activos en Meta el 02-11
+CIUDADES_META = {"A Coruña", "Valencia", "Sevilla"}

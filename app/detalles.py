@@ -15,7 +15,7 @@ from comun import es
 NOMBRES = ["Lucía", "Javier", "Carmen", "Antonio", "Marta", "Pablo", "Elena", "Jorge", "Rosa", "Miguel", "Ana", "David",
            "Pilar", "Sergio", "Laura", "Andrés", "Isabel", "Raúl", "Nuria", "Tomás", "Silvia", "Óscar", "Teresa"]
 INICIALES = "ABCDFGHLMNPRSTV"
-HOY = date(2026, 11, 2)  # «hoy» en la demo
+HOY = date(2026, 11, 2)
 OBJ_LLAMADAS, OBJ_COSTE = 50, 400
 
 
@@ -68,7 +68,6 @@ def listado(df: pd.DataFrame, titulo: str, columnas: list[str] | None = None) ->
     })
     if columnas:
         vista = vista[columnas]
-    # Formato español sin perder el orden numérico: el Styler solo cambia cómo se ve
     formato = {"Entró": lambda d: d.strftime("%d/%m/%Y %H:%M"),
                "Espera": lambda v: "" if pd.isna(v) else es(v, 1, " h"),
                "€/mes": lambda v: "" if pd.isna(v) else es(v, 0, " €")}
@@ -99,12 +98,11 @@ def periodo_txt(desde: date, hasta: date) -> str:
     return c(desde) if desde == hasta else f"{c(desde)} – {c(hasta)}"
 
 
-# ── Piden ayuda ────────────────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Piden ayuda", width="large")
 def piden_ayuda(desde: date, hasta: date, a_desde: date, a_hasta: date) -> None:
     df, ant = familias(desde, hasta), familias(a_desde, a_hasta)
     st.caption(f"{periodo_txt(desde, hasta)} · familias sin duplicados (dos contactos con el mismo teléfono son una familia)")
-    if (hasta - desde).days <= 1:  # un día: por horas
+    if (hasta - desde).days <= 1:
         actual = df.groupby(df["fecha_entrada"].dt.hour).size().reindex(range(24), fill_value=0)
         previo = ant.groupby(ant["fecha_entrada"].dt.hour).size().reindex(range(24), fill_value=0)
         eje, titulo_eje = [f"{h}:00" for h in range(24)], "hora"
@@ -131,7 +129,6 @@ def piden_ayuda(desde: date, hasta: date, a_desde: date, a_hasta: date) -> None:
     listado(df, "Todas las familias del periodo")
 
 
-# ── Llamadas en menos de 1 h ──────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Llamadas en menos de 1 h", width="large")
 def llamadas(desde: date, hasta: date) -> None:
     df = familias(desde, hasta)
@@ -166,7 +163,6 @@ def llamadas(desde: date, hasta: date) -> None:
             ["Familia", "Entró", "Franja", "Espera", "Canal", "Ciudad", "Urgente", "Estado"])
 
 
-# ── Contratan ───────────────────────────────────────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def curva_maduracion() -> pd.Series:
     """% acumulado de familias que contratan según los días desde que piden ayuda (histórico maduro, 6 meses)."""
@@ -204,7 +200,6 @@ def contratan(desde: date, hasta: date) -> None:
             ["Familia", "Entró", "Canal", "Ciudad", "Servicio", "Urgente", "€/mes"])
 
 
-# ── Coste por contrato ─────────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Coste por contrato", width="large")
 def coste(desde: date, hasta: date) -> None:
     df = familias(desde, hasta)
@@ -242,8 +237,7 @@ def coste(desde: date, hasta: date) -> None:
             ["Familia", "Entró", "Canal", "Ciudad", "Servicio", "€/mes"])
 
 
-# ── Etapas del embudo ───────────────────────────────────────────────────────────────────────────────────────────
-PASOS = [  # (etapa pulsada, siguiente, columna que marca haber llegado a la siguiente, columna de inicio del tiempo)
+PASOS = [
     ("Piden ayuda", "Hablan con su asesor/a", "llamada", "fecha_entrada"),
     ("Hablan con su asesor/a", "Valoración", "valoracion", "llamada"),
     ("Valoración", "Contratan", "alta", "valoracion"),
@@ -284,7 +278,6 @@ def etapa(k: int, desde: date, hasta: date) -> None:
     listado(perdidas, f"Familias que se quedan en «{origen.lower()}»")
 
 
-# ── Piden ayuda de noche ───────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Piden ayuda de noche", width="large")
 def noche(desde: date, hasta: date) -> None:
     df = familias(desde, hasta)
@@ -307,7 +300,6 @@ def noche(desde: date, hasta: date) -> None:
             ["Familia", "Entró", "Canal", "Ciudad", "Servicio", "Urgente", "Espera", "Estado"])
 
 
-# ── Siguen al año ──────────────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Siguen al año", width="large")
 def siguen() -> None:
     from motor import metricas
@@ -325,7 +317,6 @@ def siguen() -> None:
     st.page_link("paginas/se_queda.py", label="Ver Retención por canal", icon=":material/favorite:")
 
 
-# ── Cola de llamadas ───────────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Llamadas en menos de 1 h, mes a mes", width="large")
 def cola_rapidas(velocidad: pd.DataFrame) -> None:
     st.caption("Porcentaje de familias a las que se llama en la primera hora, por mes de entrada. Línea discontinua: objetivo.")
@@ -406,7 +397,6 @@ def ficha_cola(f: pd.Series, por_que: str) -> None:
         st.rerun()
 
 
-# ── Caso de negocio (Viaje de la familia) ──────────────────────────────────────────────────────────────────────
 @st.dialog("Si la noche convirtiera como el día", width="large")
 def negocio_extra(noche_mes: float, tasa_noche: float, tasa_dia: float) -> None:
     st.caption("Histórico maduro. Mueve el control: qué parte de la diferencia entre noche y día cierra el asistente.")
@@ -453,7 +443,7 @@ def negocio_ab(tasa_noche: float, tasa_dia: float, noche_mes: float) -> None:
     a, b, c = st.columns(3)
     conf = a.selectbox("Confianza", [90, 95, 99], index=1, format_func=lambda v: f"{v} %")
     pot = b.selectbox("Potencia", [70, 80, 90], index=1, format_func=lambda v: f"{v} %")
-    exacta = 100 * (tasa_dia - tasa_noche)  # el valor de partida es el de la tarjeta, sin redondear
+    exacta = 100 * (tasa_dia - tasa_noche)
     mejora = c.slider("Mejora que quiero detectar (p. p.)", 1.0, float(math.ceil(exacta + 5)), exacta, 0.1, format="%.1f")
     t2 = tasa_noche + mejora / 100
     z = NormalDist().inv_cdf(1 - (1 - conf / 100) / 2) + NormalDist().inv_cdf(pot / 100)
@@ -475,7 +465,6 @@ def negocio_ab(tasa_noche: float, tasa_dia: float, noche_mes: float) -> None:
     comun.grafico(graficos._limpio(fig, 280))
 
 
-# ── Calidad del asistente ──────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Conversaciones evaluadas", width="large")
 def calidad_conjunto(titulo: str, d: pd.DataFrame) -> None:
     st.caption(f"{titulo} · {len(d)} conversaciones. Elige una para leerla entera y ver qué dijeron las reglas y el revisor.")
@@ -503,7 +492,6 @@ def calidad_conjunto(titulo: str, d: pd.DataFrame) -> None:
         comun.descarga(vista[["id", "categoria", "aprueba", "fallos", "motivo"]], "conversaciones-evaluadas", "Descargar la lista (CSV)")
 
 
-# ── Canales y ciudades ─────────────────────────────────────────────────────────────────────────────────────────
 def _euros(v) -> str:
     return es(v, 0, " €") if v == v and v else "—"
 
@@ -567,7 +555,6 @@ def ficha_ciudad(ciudad: str, por_ciudad: pd.DataFrame, cruce: pd.DataFrame, per
                    "ciudad-" + re.sub(r"\W+", "-", ciudad.lower()))
 
 
-# ── Retención ──────────────────────────────────────────────────────────────────────────────────────────────────
 @st.dialog("Cohorte de contratos", width="large")
 def ficha_cohorte(cohorte: str, d: pd.DataFrame, tri: pd.DataFrame) -> None:
     g = d[d["cohorte"] == cohorte]

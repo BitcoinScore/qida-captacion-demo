@@ -11,8 +11,8 @@ import os
 import shutil
 import subprocess
 
-MODELO_ASISTENTE = "haiku"   # rápido y barato para conversar
-MODELO_JUEZ = "sonnet"       # más criterio para evaluar
+MODELO_ASISTENTE = "haiku"
+MODELO_JUEZ = "sonnet"
 
 
 class ErrorModelo(RuntimeError):

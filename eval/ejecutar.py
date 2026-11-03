@@ -15,8 +15,8 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
-from motor import asistente  # noqa: E402
-from motor.llm import MODELO_JUEZ, ErrorModelo, completar  # noqa: E402
+from motor import asistente
+from motor.llm import MODELO_JUEZ, ErrorModelo, completar
 
 CASOS = RAIZ / "eval" / "casos.json"
 SALIDA = RAIZ / "eval" / "resultados.json"
@@ -68,8 +68,6 @@ def comprobar(caso: dict, texto: str, ficha: dict) -> dict:
 
 
 def juzgar(historial: list[dict], hora: datetime) -> dict:
-    # v2: el juez recibe la hora de la conversación. En la v1 no la tenía y castigaba como «inventado»
-    # que el asistente dijera que era fuera de horario: era un fallo del juez, no del asistente.
     conversacion = "\n".join(f"{'FAMILIA' if m['rol'] == 'usuario' else 'ASISTENTE'}: {m['texto']}" for m in historial)
     mensaje = (
         f"FECHA Y HORA DE LA CONVERSACIÓN (el asistente también la conocía): {DIAS[hora.weekday()]} {hora:%d-%m-%Y %H:%M}.\n\n"

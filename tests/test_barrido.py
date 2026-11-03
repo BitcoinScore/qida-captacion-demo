@@ -82,7 +82,7 @@ def test_formulario_valida_y_confirma(con, tmp_path, monkeypatch):
         c = sqlite3.connect(copia)
         try:
             return c.execute("SELECT COUNT(*) FROM leads_web WHERE canal='Formulario'").fetchone()[0]
-        except sqlite3.OperationalError:  # la tabla se crea con el primer lead
+        except sqlite3.OperationalError:
             return 0
         finally:
             c.close()
@@ -102,16 +102,16 @@ def test_formulario_valida_y_confirma(con, tmp_path, monkeypatch):
     assert "código postal de 5 cifras" in " ".join(m.value for m in at.markdown)
     rellenar("612345678", "28001", False)
     assert "casilla" in " ".join(m.value for m in at.markdown)
-    rellenar("612345678", "28001", True)   # demasiado rápido para una persona: se rechaza (límite contra bots)
+    rellenar("612345678", "28001", True)
     assert "Revisa los datos" in " ".join(m.value for m in at.markdown) and guardados() == antes
     from motor import limites
     monkeypatch.setattr(limites, "ESPERA_MINIMA_FORMULARIO", 0)
     rellenar("612345678", "28001", True)
     assert "Recibido" in " ".join(m.value for m in at.markdown)
     assert guardados() - antes == 1, "el lead debe guardarse una sola vez"
-    rellenar("612 345 678", "28001", True)   # doble clic con el mismo teléfono (escrito de otra forma)
+    rellenar("612 345 678", "28001", True)
     assert guardados() - antes == 1, "el mismo teléfono no debe duplicar el lead"
-    rellenar("699 111 222", "41001", True)   # otra familia en el mismo equipo
+    rellenar("699 111 222", "41001", True)
     assert guardados() - antes == 2
     assert "699 111 222" in " ".join(m.value for m in at.markdown), "la confirmación debe mostrar el último teléfono"
 

@@ -5,13 +5,12 @@ import plotly.graph_objects as go
 import geo
 from comun import GRIS_TEXTO, NARANJA_TEXTO, VERDE_TEXTO, es
 
-# Paleta de Qida (qida.es): verde de marca para el dato principal, naranja SOLO para lo que hay que mirar.
-ACENTO = "#004039"     # dato principal / lo que sigue en el embudo
-MEDIO = "#338581"      # dato secundario (relleno; para texto, VERDE_TEXTO)
-NEUTRO = "#99C2C0"     # comparación, sin juicio
-PERDIDA = "#CCE0DF"    # lo que se pierde (apagado)
-AVISO = "#ea6d43"      # alerta (relleno; para texto, NARANJA_TEXTO)
-GRIS = GRIS_TEXTO      # textos secundarios y referencias (contraste AA)
+ACENTO = "#004039"
+MEDIO = "#338581"
+NEUTRO = "#99C2C0"
+PERDIDA = "#CCE0DF"
+AVISO = "#ea6d43"
+GRIS = GRIS_TEXTO
 ESCALA = [[0, "#EFF5F5"], [1, ACENTO]]
 
 
@@ -42,7 +41,7 @@ def embudo_viaje(etapas: list[dict]) -> go.Figure:
         fig.add_shape(type="rect", x0=-w, x1=w, y0=y1, y1=y0,
                       line=dict(color=ACENTO, width=2, dash="dot" if estimado else "solid"),
                       fillcolor="rgba(51,133,129,0.15)" if estimado else ACENTO)
-        if k + 1 < len(etapas):  # conector hacia la siguiente etapa
+        if k + 1 < len(etapas):
             w2 = ancho[k + 1]
             fig.add_shape(type="path", path=f"M {-w} {y1} L {w} {y1} L {w2} {y1 - hueco} L {-w2} {y1 - hueco} Z",
                           fillcolor="rgba(0,64,57,0.06)", line=dict(width=0))
@@ -61,7 +60,6 @@ def embudo_viaje(etapas: list[dict]) -> go.Figure:
                                text=f"<b>▼ {e['perdida']}</b>", font=dict(size=13, color=col))
             fig.add_annotation(x=1.05, y=yc - 0.13, xanchor="left", showarrow=False, align="left",
                                text=e["arreglo"], font=dict(size=12, color=VERDE_TEXTO))
-    # Barras invisibles encima de cada etapa: hacen que se pueda pulsar (los rectángulos de Plotly no se seleccionan)
     centros = [-(k * (alto + hueco)) - alto / 2 for k in range(len(etapas))]
     fig.add_bar(y=centros, x=[2 * max(w, 0.12) for w in ancho], base=[-max(w, 0.12) for w in ancho], orientation="h",
                 width=alto, marker=dict(color="rgba(0,0,0,0)"), showlegend=False,
@@ -80,7 +78,7 @@ def puntos_ic(df: pd.DataFrame, etiqueta: str, alto: int = 380, rango: tuple[flo
     """
     d = df.sort_values("pct")
     fig = go.Figure()
-    fig.add_trace(go.Scatter(  # intervalo
+    fig.add_trace(go.Scatter(
         x=list(d["ic_bajo"]) + [None], y=list(d["canal"]) + [None], mode="markers", showlegend=False,
         marker=dict(size=1, color="rgba(0,0,0,0)"), hoverinfo="skip"))
     for _, f in d.iterrows():
@@ -134,7 +132,6 @@ def mapa(por_ciudad: pd.DataFrame) -> go.Figure:
     d["lon"] = d["ciudad"].map(lambda c: geo.COORDENADAS[c][1])
     d["meta"] = d["ciudad"].isin(geo.CIUDADES_META).map({True: "Sí", False: "No"})
     d["pct_txt"] = d["pct_alta"].map(es)
-    # Área proporcional al volumen: el diámetro crece con la raíz cuadrada (si no, el ojo exagera las diferencias)
     tamano = 60 * (d["leads"] / d["leads"].max()) ** 0.5
     con_meta = d["meta"] == "Sí"
     fig.add_trace(go.Scattermap(

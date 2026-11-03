@@ -33,7 +33,7 @@ def _foto(nombre: str, alt: str) -> str:
     return f"<img src='app/static/fotos/{nombre}.webp' alt='{html.escape(alt, quote=True)}'>"
 
 
-TELEFONO = "656 726 469"  # el que publica qida.es (comprobado el 2026-11-02; antes la demo llevaba 635 704 124)
+TELEFONO = "656 726 469"
 SERVICIOS = ["Cuidadora por horas", "Cuidadora interna", "Fines de semana", "Cuidadora nocturna", "Aún no lo sé"]
 CASILLA = "Acepto que Qida use mis datos para llamarme y preparar el presupuesto."
 AVISO_CHAT = ("Al escribir y dejarnos tu teléfono aceptas que Qida use lo que cuentes para llamarte y preparar el presupuesto. "
@@ -42,7 +42,6 @@ AVISO_CHAT = ("Al escribir y dejarnos tu teléfono aceptas que Qida use lo que c
 PRIVACIDAD = ("No hace falta que nos cuentes detalles médicos. Puedes pedir que borremos tus datos cuando quieras. "
               "Política de privacidad (en la web real).")
 LOGO_B64 = base64.b64encode(comun.LOGO.read_bytes()).decode() if comun.LOGO.exists() else ""
-# El logotipo no va en el repositorio (marca de terceros): sin él, el nombre en la tipografía de los títulos.
 MARCA = (f"<img src='data:image/png;base64,{LOGO_B64}' height='34' alt='Qida'>" if LOGO_B64 else
          "<span class='marca-texto'>Qida</span>")
 ENLACE_TEL = f"tel:+34{TELEFONO.replace(' ', '')}"
@@ -245,17 +244,16 @@ def guardar_lead(canal: str, ficha: dict, conversacion: list | None = None) -> i
         return leads.guardar(con, ahora, canal, ficha, conversacion, CASILLA if canal == "Formulario" else AVISO_CHAT)
 
 
-st.session_state.setdefault("form_pintado_en", reloj.time())  # para el tiempo mínimo antes de enviar el formulario
+st.session_state.setdefault("form_pintado_en", reloj.time())
 
 
 def icono(nombre: str) -> str:
     return f"<span class='material-symbols-rounded'>{nombre}</span>"
 
 
-# ── Formularios y ventanas ────────────────────────────────────────────────────────────────────────────────────────────────────
 def formulario(clave: str, con_titulo: bool = True) -> None:
     """Formulario de «te llamamos». `clave` distingue el de la página del de la ventana (no pueden repetir claves)."""
-    with st.form(f"formulario-{clave}", border=con_titulo):  # en la ventana, sin doble marco
+    with st.form(f"formulario-{clave}", border=con_titulo):
         if con_titulo:
             st.markdown("<h3 class='tit-form'>Déjanos tus datos y te llamamos</h3>", unsafe_allow_html=True)
         servicio = st.selectbox("¿Qué necesitas?", SERVICIOS, key=f"servicio-{clave}")
@@ -264,7 +262,7 @@ def formulario(clave: str, con_titulo: bool = True) -> None:
         acepto = st.checkbox(CASILLA, key=f"acepto-{clave}")
         st.caption(PRIVACIDAD)
         enviado = st.form_submit_button("Quiero que me llaméis", type="primary", width="stretch")
-    if enviado:  # un doble clic con el mismo teléfono no duplica el lead; otro teléfono es otra familia
+    if enviado:
         tel = normalizar_telefono(telefono)
         errores = []
         if not tel:
@@ -294,11 +292,10 @@ def formulario_ventana() -> None:
     formulario("ventana", con_titulo=False)
 
 
-# ── Asistente virtual ────────────────────────────────────────────────────────────────────────────────────────────────────
 def vista_equipo(ficha: dict, cuando: str, opciones: bool = False) -> None:
     """Tarjeta «Vista del equipo» junto al chat (solo en la demo). Muestra lo que llegaría al CRM y, con `opciones`, deja atender una
     petición de borrado o empezar de cero."""
-    ficha = limpiar_ficha(ficha)  # defensa en profundidad: nunca se pinta HTML que venga del modelo
+    ficha = limpiar_ficha(ficha)
     with st.container(key="equipo-demo"):
         st.markdown(chat_ui.equipo_html(ficha, cuando), unsafe_allow_html=True)
         if opciones:
@@ -377,9 +374,6 @@ def chat():
     zona = st.empty()
     zona.markdown(chat_ui.burbujas(historial, ahora, cuando_llamamos), unsafe_allow_html=True)
 
-    # Respuestas rápidas. Los dos grupos existen siempre (claves estables) y el CSS enseña uno u otro según haya ya un mensaje de
-    # la familia en la conversación. Cada clic se apunta en una cola (callback) y se contesta por orden: si Streamlit cancela la
-    # ejecución porque la persona pulsa otro botón mientras el modelo piensa, no se pierde nada.
     with st.container(key="qchips-inicio", horizontal=True):
         for i, texto in enumerate(("Necesito ayuda urgente en casa", "Quiero saber precios", "Tengo dudas con la Dependencia")):
             st.button(texto, key=f"qi-{i}", on_click=encolar, args=(texto,))
@@ -391,7 +385,6 @@ def chat():
 
     while pendientes:
         pregunta = pendientes[0]
-        # límites antes de llamar al modelo (coste y abuso): un mensaje rechazado nunca llega a él
         admitido, motivo = limites.validar_mensaje(pregunta, sum(m["rol"] == "usuario" for m in historial))
         if not admitido:
             comun.nota(motivo, "neutra")
@@ -399,26 +392,20 @@ def chat():
             continue
         zona.markdown(chat_ui.burbujas(historial, ahora, cuando_llamamos, escribiendo=True, pendiente=pregunta),
                       unsafe_allow_html=True)
-        # El turno se guarda entero y solo al tener respuesta (ver motor/conversacion.py)
         texto, nueva = conversacion.turno(historial, pregunta, asistente.responder, ahora, TELEFONO)
         revelar(zona, historial, texto, cuando_llamamos)
-        pendientes.pop(0)  # solo después de guardar el turno
-        # La ficha la escribe el modelo a partir de lo que dice la familia: se valida antes de guardarla o pintarla
+        pendientes.pop(0)
         st.session_state["ficha"] = ficha = limpiar_ficha(nueva) if nueva else ficha
         slot_resumen.markdown(chat_ui.resumen(ficha), unsafe_allow_html=True)
-        # Se guarda con teléfono, o sin él si hay que pasarlo a una persona (si no, «te dejo anotada la petición» sería falso)
         marca = ficha.get("telefono") or ("escalar" if ficha.get("escalar") else None)
         if marca and st.session_state.get("guardado") != marca:
             st.session_state.setdefault("lead_ids", []).append(guardar_lead("Chat", ficha, historial))
             st.session_state["guardado"] = marca
 
-    # Sin casilla que bloquee: en una urgencia o de madrugada, nadie debe tener que «aceptar» para pedir ayuda. Se informa antes de
-    # escribir y el consentimiento es el acto de dejar el teléfono (queda registrado con este texto en cada lead).
     st.markdown(f"<div class='qpie'>{html.escape(AVISO_CHAT)}</div>", unsafe_allow_html=True)
     vista_equipo(ficha, cuando_llamamos, opciones=True)
 
 
-# ── Cabecera ────────────────────────────────────────────────────────────────────────────────────────────────────
 st.markdown(
     f"""
 <div class="franja-demo"><span class="chip-demo">Concepto para la entrevista</span><span>No es la web oficial de Qida</span></div>
@@ -432,7 +419,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Portada ────────────────────────────────────────────────────────────────────────────────────────────────────
 estado = (f"<span class='estado-web abierto'><span class='punto'></span>Abierto ahora · {franja}</span>" if abierto else
           "<span class='estado-web cerrado'><span class='punto'></span>Ahora cerrado · te atiende el asistente virtual</span>")
 st.markdown(
@@ -457,7 +443,6 @@ st.markdown(
 )
 
 
-# ── Servicios ────────────────────────────────────────────────────────────────────────────────────────────────────
 st.markdown("<div id='servicios'></div>", unsafe_allow_html=True)
 st.markdown("<section class='seccion-web'><h2>Servicios de <b>cuidadoras a domicilio</b></h2>"
             "<p class='sub'>Cuidado flexible, desde 1 hora a la semana. Elige el que mejor encaja con tu familia.</p></section>",
@@ -475,10 +460,9 @@ with st.container(key="servicios"):
                      f"<div class='ic'>{icono(icono_svc)}</div></div>"
                      f"<div class='cuerpo'><h3>{titulo}</h3><p>{texto}</p></div></div>", unsafe_allow_html=True)
         if col.button("Pedir información", key=f"servicio-btn-{opcion}", width="stretch"):
-            st.session_state["servicio-ventana"] = opcion  # el formulario se abre con este servicio ya elegido
+            st.session_state["servicio-ventana"] = opcion
             formulario_ventana()
 
-# ── Asistente de noche ────────────────────────────────────────────────────────────────────────────────────────────────────
 st.markdown("<div id='asistente'></div>", unsafe_allow_html=True)
 with st.container(key="banda-menta"):
     st.markdown(
@@ -504,7 +488,6 @@ agendada para la mañana. Esta es una conversación real de la evaluación del a
         if centro.button("Probar el asistente", icon=":material/chat:", width="stretch", key="probar-asistente"):
             chat()
 
-# ── Cómo funciona ────────────────────────────────────────────────────────────────────────────────────────────────────
 PASOS = [("hearing", "Escuchamos", "Por teléfono, en el formulario o, de noche, con el asistente virtual. Entendemos tu situación."),
          ("support_agent", "Asesoramos", "Un asesor/a familiar te llama en menos de 24 h (a las 9:00 si escribes de noche)."),
          ("assignment_turned_in", "Valoramos", "Valoración del caso y Plan de Trabajo Individual con tu Referente Social."),
@@ -519,7 +502,6 @@ st.markdown(
         f"<div class='tx'><b>{t}</b><p>{d}</p></div></div>" for n, (ic, t, d) in enumerate(PASOS, 1)) +
     "</div></section>", unsafe_allow_html=True)
 
-# ── Contacto ────────────────────────────────────────────────────────────────────────────────────────────────────
 st.markdown("<div id='contacto'></div>", unsafe_allow_html=True)
 with st.container(key="banda-verde"):
     st.markdown(
@@ -535,7 +517,6 @@ with st.container(key="banda-verde"):
             st.markdown(f"<div class='aviso-noche'>Son las {ahora:%H:%M} y ahora no podemos atenderte por teléfono. Déjanos tus "
                         f"datos o habla con el asistente virtual: te llamamos {cuando_llamamos}.</div>", unsafe_allow_html=True)
 
-# ── Pie ────────────────────────────────────────────────────────────────────────────────────────────────────
 with st.container(key="banda-pie"):
     st.markdown(
         f"""
@@ -550,7 +531,6 @@ servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026). El asi
 
 
 
-# ── Lanzador: avatar abajo a la derecha que saluda solo con un bocadillo ─────────────────────────────────────────────
 st.markdown(chat_ui.LANZADOR_CSS, unsafe_allow_html=True)
 with st.container(key="boton-chat"):
     st.markdown(chat_ui.lanzador(chat_ui.saludo(abierto, cuando_llamamos, ahora)), unsafe_allow_html=True)

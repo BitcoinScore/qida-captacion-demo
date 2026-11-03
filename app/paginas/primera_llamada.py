@@ -50,11 +50,10 @@ comun.kpi(k3, "Contratos cubiertos con el 30 % mejor puntuado", f"{es(cubiertos_
           detalle=lambda: detalles.cola_cobertura(gan))
 fila.pintar()
 
-# ── La cola de hoy ──────────────────────────────────────────────────────────────────────────────────────────────
 NOMBRES = ["Lucía", "Javier", "Carmen", "Antonio", "Marta", "Pablo", "Elena", "Jorge", "Rosa", "Miguel", "Ana", "David",
            "Pilar", "Sergio", "Laura", "Andrés", "Isabel", "Raúl", "Nuria", "Tomás", "Silvia", "Óscar", "Teresa"]
 INICIALES = "ABCDFGHLMNPRSTV"
-HOY = pd.Timestamp("2026-11-02 09:00")  # «hoy» en la demo
+HOY = pd.Timestamp("2026-11-02 09:00")
 with comun.conexion() as con:
     cola = pd.read_sql("SELECT * FROM familias WHERE fecha_entrada >= ? AND fecha_entrada < ?", con,
                        params=[(HOY - pd.Timedelta(hours=13)).isoformat(), HOY.isoformat()])
@@ -64,16 +63,15 @@ cola["score"] = scoring.puntuar(res, cola) if len(cola) else []
 cola["familia"] = [f"{NOMBRES[i % len(NOMBRES)]} {INICIALES[(i // len(NOMBRES)) % len(INICIALES)]}." for i in cola["id"]]
 cola["entró por"] = cola["canal"]
 
-# Las familias que dejó anoche el asistente (si se ha probado la web) entran en la misma cola
 try:
     with comun.conexion() as con:
-        leads.purgar(con)  # retención: los leads caducan a los 30 días
+        leads.purgar(con)
         chat = pd.read_sql("SELECT fecha, ficha FROM leads_web WHERE canal = 'Chat'", con)
-except (sqlite3.Error, pd.errors.DatabaseError):  # aún no se ha usado la web: la tabla no existe
+except (sqlite3.Error, pd.errors.DatabaseError):
     chat = pd.DataFrame(columns=["fecha", "ficha"])
 filas_chat = []
 for _, f in chat.tail(3).iterrows():
-    ficha = limpiar_ficha(json.loads(f["ficha"]))  # las filas viejas también: el texto viene de una familia y del modelo
+    ficha = limpiar_ficha(json.loads(f["ficha"]))
     if ficha.get("ciudad") not in ciudades:
         continue
     filas_chat.append({"id": -len(filas_chat) - 1, "familia": ficha.get("nombre") or "Familia del chat",
@@ -117,7 +115,6 @@ else:
     st.caption("Nombres ficticios. Pulsa una fila para ver su ficha y marcar la llamada como hecha. Urgentes primero "
                "(alta hospitalaria o situación urgente); después, por probabilidad.")
 
-# ── Por qué funciona ─────────────────────────────────────────────────────────────────────────────────────────────
 izq, der = st.columns(2)
 with izq:
     comun.titulo("La puntuación acierta: curva de ganancia")
@@ -128,7 +125,6 @@ with izq:
                     line=dict(color=graficos.ACENTO, width=3))
     fig.add_scatter(x=[0, 100], y=[0, 100], mode="lines", name="En orden de llegada",
                     line=dict(color=graficos.GRIS, dash="dash"))
-    # Punto de lectura: llamando al 30 % de la cola, cuántos contratos se cubren por puntuación y al azar
     fig.add_shape(type="line", x0=30, x1=30, y0=0, y1=cubiertos_30, line=dict(color=graficos.GRIS, dash="dot", width=1))
     fig.add_shape(type="line", x0=30, x1=30, y0=30, y1=cubiertos_30, line=dict(color=comun.VERDE_TEXTO, width=4))
     fig.add_scatter(x=[30, 30], y=[cubiertos_30, 30], mode="markers", showlegend=False, hoverinfo="skip",

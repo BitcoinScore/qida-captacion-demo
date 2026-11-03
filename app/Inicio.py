@@ -5,7 +5,6 @@ import comun
 st.set_page_config(page_title="Qida · Captación (concepto)", page_icon=":material/home_health:", layout="wide")
 comun.estilo()
 
-# El orden sigue el recorrido de la demo: medir → lo que ve la familia → la cola → los canales → la calidad.
 paginas = {
     "Recorrido": [
         st.Page("paginas/empieza.py", title="Empieza aquí", icon=":material/flag:", default=True),

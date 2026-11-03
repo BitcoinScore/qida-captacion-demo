@@ -9,7 +9,7 @@ def test_scoring_valida_sin_censura(con):
     gan = scoring.ganancia(test)
     assert gan["pct_contratos"].is_monotonic_increasing and round(gan["pct_contratos"].iloc[-1]) == 100
     cal = scoring.calibracion(test)
-    assert (abs(cal["predicho"] - cal["real"]) < 10).all()  # bien calibrado: menos de 10 puntos por grupo
+    assert (abs(cal["predicho"] - cal["real"]) < 10).all()
 
 
 def test_porque_es_legible(con):

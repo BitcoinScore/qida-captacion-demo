@@ -51,7 +51,6 @@ comun.cabecera("Canales y ciudades", conclusion, "marketing",
                "Qué canal y qué ciudad traen familias que contratan, cuánto cuesta captarlas y cuánto valen. "
                f"Periodo: {periodo.lower()}.")
 
-# ¿Cada ciudad difiere del resto? Prueba de dos proporciones (z), 95 %.
 total_k, total_n = por_ciudad["contratos"].sum(), por_ciudad["leads"].sum()
 estados, ics = [], []
 for _, f in por_ciudad.iterrows():
@@ -72,10 +71,10 @@ with st.container():
     comun.grafico(graficos.ltv_cac(eco, alto=320))
     with st.container():
         st.markdown("**Rentabilidad por canal**")
-        euros = lambda v: es(v, 0, " €") if v == v and v else "—"  # noqa: E731
+        euros = lambda v: es(v, 0, " €") if v == v and v else "—"
         con_coste = eco[eco["cac_combinado"].notna()].sort_values("ltv_cac", ascending=False)
         sin_coste = eco[eco["cac_combinado"].isna()]
-        tope = 12  # escala con tope en 12×: por encima, la barra llena (la cifra dice cuánto)
+        tope = 12
         filas = []
         for _, f in con_coste.iterrows():
             pb = f["payback_meses"]
@@ -131,7 +130,6 @@ with st.container():
     metrica = st.radio("Mostrar", MODOS, horizontal=True)
     es_pct, es_retorno = metrica == MODOS[1], metrica == MODOS[0]
     c = cruce.copy()
-    # Valor de una familia en 12 meses = facturación mensual media × margen bruto (supuesto) × meses que sigue (Kaplan-Meier)
     s_general = metricas._supervivencia(curvas)
     meses_canal = {k: (metricas._supervivencia(g) if len(g) >= 30 else s_general).sum() for k, g in curvas.groupby("canal")}
     c["valor_familia"] = c["ingreso"] * metricas.MARGEN_BRUTO * c["canal"].map(meses_canal).fillna(s_general.sum())
@@ -144,16 +142,16 @@ with st.container():
         c["valor"] = coste
     tabla = c.pivot(index="canal", columns="ciudad", values="valor")
     n = c.pivot(index="canal", columns="ciudad", values="contratos").reindex(tabla.index)
-    sin_dato = tabla.index[tabla.isna().all(axis=1)].tolist()  # p. ej. «Teléfono directo» no tiene coste asignado
+    sin_dato = tabla.index[tabla.isna().all(axis=1)].tolist()
     tabla, n = tabla.drop(index=sin_dato), n.drop(index=sin_dato)
-    orden = tabla.mean(axis=1).sort_values(ascending=es_pct or es_retorno).index  # el mejor arriba
-    tabla, n = tabla.loc[orden], n.loc[orden]  # Plotly pinta la primera fila abajo: así el mejor queda arriba
+    orden = tabla.mean(axis=1).sort_values(ascending=es_pct or es_retorno).index
+    tabla, n = tabla.loc[orden], n.loc[orden]
     sufijo = " %" if es_pct else ("×" if es_retorno else " €")
     texto = [[("—" if v != v else es(v, 0 if sufijo == " €" else 1, sufijo)) + ("*" if (v == v and k == k and k < 15) else "")
               for v, k in zip(fila_v, fila_n)] for fila_v, fila_n in zip(tabla.values, n.values)]
     escala = graficos.ESCALA if es_pct else [[0, graficos.ACENTO], [1, "#EFF5F5"]]
     rango = {}
-    if es_retorno:  # umbral sano en 3×: por debajo, tono de alerta; por encima, verdes; a partir de 10×, el más oscuro
+    if es_retorno:
         escala = [[0, "#f6c9b5"], [0.29, "#fbe7de"], [0.3, "#EFF5F5"], [1, graficos.ACENTO]]
         rango = dict(zmin=0, zmax=10)
     fig = go.Figure(go.Heatmap(z=tabla.values, x=tabla.columns, y=tabla.index, text=texto, texttemplate="%{text}",
