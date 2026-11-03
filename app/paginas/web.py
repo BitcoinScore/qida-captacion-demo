@@ -6,7 +6,7 @@ qida.es (preguntas frecuentes, cobertura, tareas) no se repite.
 Auditada en docs/auditoria-web-familia.md y docs/pruebas-calidad.md: IA declarada, privacidad antes de recoger datos, 112
 visible, formulario que funciona y con límites, teléfono y horario, señales de confianza y coherencia con el anuncio.
 Marca, servicios y cifras públicas tomados de qida.es (2 de noviembre de 2026). No es la web oficial. Las fotografías (app/static/fotos) son de
-qida.es, propiedad de Qida, y se usan solo en esta demo privada.
+qida.es, propiedad de Qida: no se suben al repositorio (ver .gitignore); sin ellas la página usa un fondo de color.
 """
 import base64
 import html
@@ -14,6 +14,7 @@ import json
 import re
 import time as reloj
 from datetime import datetime, time
+from pathlib import Path
 
 import streamlit as st
 
@@ -21,6 +22,16 @@ import chat_ui
 import comun
 from motor import asistente, conversacion, leads, limites, llm
 from motor.contacto import horario, limpiar_ficha, normalizar_telefono
+
+CARPETA_FOTOS = Path(__file__).resolve().parent.parent / "static" / "fotos"
+
+
+def _foto(nombre: str, alt: str) -> str:
+    """La etiqueta <img> si la foto está en local; vacío si no (las fotos de qida.es no van en el repositorio)."""
+    if not (CARPETA_FOTOS / f"{nombre}.webp").exists():
+        return ""
+    return f"<img src='app/static/fotos/{nombre}.webp' alt='{html.escape(alt, quote=True)}'>"
+
 
 TELEFONO = "656 726 469"  # el que publica qida.es (comprobado el 2026-11-02; antes la demo llevaba 635 704 124)
 SERVICIOS = ["Cuidadora por horas", "Cuidadora interna", "Fines de semana", "Cuidadora nocturna", "Aún no lo sé"]
@@ -434,7 +445,7 @@ st.markdown(
   <div class="ctas"><a class="btn-w grande" href="#contacto">Solicitar información</a>
     <a class="btn-o grande" href="{ENLACE_TEL}">{icono('call')} Llamar ahora</a></div>
   <div class="precio-web">Desde 170 €/mes · presupuesto gratis</div>
-  <div class="hero-foto"><img src="app/static/fotos/portada.webp" alt="Una cuidadora abraza a una mujer mayor en su casa"></div>
+  <div class="hero-foto">{_foto("portada", "Una cuidadora abraza a una mujer mayor en su casa")}</div>
 </section>
 <div class="confianza-web">
   <div><b>4,8/5</b>calidad del servicio</div>
@@ -460,7 +471,7 @@ with st.container(key="servicios"):
         ("weekend", "Cuidadoras de fin de semana", "Un respiro para la familia. La cuidadora se ocupa de higiene, medicación, "
                                                    "comidas y compañía.", "Fines de semana", "finde"),
     ]):
-        col.markdown(f"<div class='svc'><div class='foto'><img src='app/static/fotos/{foto}.webp' alt='{titulo}'>"
+        col.markdown(f"<div class='svc'><div class='foto'>{_foto(foto, titulo)}"
                      f"<div class='ic'>{icono(icono_svc)}</div></div>"
                      f"<div class='cuerpo'><h3>{titulo}</h3><p>{texto}</p></div></div>", unsafe_allow_html=True)
         if col.button("Pedir información", key=f"servicio-btn-{opcion}", width="stretch"):

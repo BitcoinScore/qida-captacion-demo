@@ -4,3 +4,6 @@ datos/crm.db
 app/assets/
 eval/etiquetas_humanas.json
 .pytest_cache/
+
+# Fotos de qida.es (propiedad de Qida): solo en local, no se publican
+app/static/fotos/*.webp

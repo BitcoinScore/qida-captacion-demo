@@ -78,55 +78,26 @@ with st.container():
         tope = 12  # escala con tope en 12×: por encima, la barra llena (la cifra dice cuánto)
         filas = []
         for _, f in con_coste.iterrows():
-            r = f["ltv_cac"]
-            ancho = min(100, 100 * r / tope)
-            color = comun.NARANJA if r < 3 else (comun.VERDE if f["contratos"] >= 50 else comun.VERDE_CLARO)
-            aviso = "<br><span class='poco'>pocos datos</span>" if f["contratos"] < 50 else ""
-            meses = "—" if f["payback_meses"] != f["payback_meses"] or f["payback_meses"] is None else                 f"{es(f['payback_meses'], 0)} {'mes' if f['payback_meses'] == 1 else 'meses'}"
-            filas.append(
-                f"<tr><td class='canal'>{f['canal']}{aviso}</td><td>{es(f['familias'], 0)}</td><td>{es(f['contratos'], 0)}</td>"
-                f"<td>{euros(f['cac_combinado'])}</td><td>{euros(f['ltv_12m'])}</td>"
-                f"<td><div class='barra'><div class='pista'><div class='lleno' style='width:{ancho:.0f}%;background:{color}'></div>"
-                f"<div class='marca3' style='left:{100 * 3 / tope:.1f}%'></div></div><b>{es(r, 1, '×')}</b></div></td><td>{meses}</td></tr>")
+            pb = f["payback_meses"]
+            meses = "—" if pb != pb or pb is None else f"{es(pb, 0)} {'mes' if pb == 1 else 'meses'}"
+            filas.append({"Canal": f["canal"] + (" · pocos datos" if f["contratos"] < 50 else ""),
+                          "Familias": int(f["familias"]), "Contratos": int(f["contratos"]),
+                          "Cuesta captarla": euros(f["cac_combinado"]), "Deja en 12 meses": euros(f["ltv_12m"]),
+                          "Retorno": float(f["ltv_cac"]), "Se recupera en": meses})
         for _, f in sin_coste.iterrows():
-            filas.append(
-                f"<tr class='sin'><td class='canal'>{f['canal']}</td><td>{es(f['familias'], 0)}</td><td>{es(f['contratos'], 0)}</td>"
-                f"<td colspan='4'>Sin coste propio: llaman porque ya conocen a Qida (marca, boca a boca, folletos). "
-                f"Valor de una familia: {euros(f['ltv_12m'])}.</td></tr>")
-        st.markdown(f"""
-<style>
-.rent, .rent tr, .rent th, .rent td {{border: none !important; background: transparent;}}
-.rent {{width:100%; border-collapse:collapse; font-size:.92rem}}
-.rent th {{border-bottom:2px solid {comun.BORDE} !important; text-align:left; font-weight:600; color:{comun.GRIS_TEXTO}; font-size:.78rem; text-transform:uppercase;
-  letter-spacing:.04em; padding:8px 10px; border-bottom:2px solid {comun.BORDE}}}
-.rent th.grupo {{text-align:center; color:{comun.VERDE_TEXTO}; border-bottom:none !important; padding:8px 14px 0}}
-.rent th.grupo span {{display:block; padding-bottom:6px; border-bottom:2px solid {comun.VERDE_MEDIO}}}
-.rent tr:first-child th:first-child {{border-bottom:none !important}}
-.rent td {{padding:10px; border-bottom:1px solid #EEF3F3 !important; font-variant-numeric:tabular-nums; vertical-align:middle}}
-.rent td.canal {{font-weight:600; color:{comun.VERDE}; white-space:nowrap}}
-.rent td, .rent th {{text-align:center !important}}
-.rent .barra {{justify-content:center}}
-.rent .poco {{display:inline-block; margin-top:3px; font-size:.72rem; font-weight:500; color:{comun.GRIS_TEXTO}; border:1px solid {comun.BORDE};
-  border-radius:99px; padding:1px 7px}}
-.rent .barra {{display:flex; align-items:center; gap:10px; min-width:220px}}
-.rent .pista {{position:relative; flex:1; height:10px; background:#EEF3F3; border-radius:99px}}
-.rent .lleno {{height:100%; border-radius:99px}}
-.rent .marca3 {{position:absolute; top:-4px; bottom:-4px; width:2px; background:{comun.GRIS_TEXTO}}}
-.rent tr.sin td {{color:{comun.GRIS_TEXTO}; font-style:italic}}
-.rent tr.sin td.canal {{font-style:normal}}
-</style>
-<div class="rent-envoltorio" style="overflow-x:auto"><table class="rent">
-<tr><th><span style="position:absolute;left:-9999px">Canal</span></th><th colspan="2" class="grupo"><span>Volumen</span></th><th colspan="2" class="grupo"><span>Una familia</span></th>
-<th colspan="2" class="grupo"><span>Rentabilidad</span></th></tr>
-<tr><th>Canal</th><th>Familias</th><th>Contratos</th><th>Cuesta captarla</th><th>Deja en 12 meses</th>
-<th>Retorno · la raya marca 3×</th><th>Se recupera en</th></tr>
-{''.join(filas)}
-</table></div>""", unsafe_allow_html=True)
+            filas.append({"Canal": f["canal"] + " · sin coste propio", "Familias": int(f["familias"]),
+                          "Contratos": int(f["contratos"]), "Cuesta captarla": "—",
+                          "Deja en 12 meses": euros(f["ltv_12m"]), "Retorno": None, "Se recupera en": "—"})
+        st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch", column_config={
+            "Familias": st.column_config.NumberColumn(format="localized"),
+            "Contratos": st.column_config.NumberColumn(format="localized"),
+            "Retorno": st.column_config.ProgressColumn("Retorno (veces lo invertido)", format="%.1f×", min_value=0, max_value=tope),
+        })
         total = eco["gasto_total"].sum() / max(eco["contratos"].sum(), 1)
         st.caption(f"Coste medio de captar una familia en el periodo: **{es(total, 0, ' €')}** (en la portada, el del último mes). "
                    "«Cuesta captarla» incluye medios, equipo y acuerdos. «Deja en 12 meses» = facturación × margen bruto "
-                   "**supuesto** del 30 % × meses que sigue. Naranja = retorno por debajo de 3×. «Pocos datos» = menos de 50 "
-                   "contratos.")
+                   "**supuesto** del 30 % × meses que sigue. Retorno por debajo de 3× = no compensa. «Pocos datos» = menos de 50 "
+                   "contratos. Sin coste propio: llaman porque ya conocen a Qida (marca, boca a boca, folletos).")
         cc1, cc2 = st.columns([3, 1], vertical_alignment="bottom")
         canal_sel = cc1.selectbox("Abrir la ficha de un canal", list(eco["canal"]), key="canal-ficha")
         if cc2.button("Ver ficha del canal", icon=":material/open_in_new:", width="stretch"):

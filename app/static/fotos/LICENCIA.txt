@@ -1,2 +1,2 @@
-Fotografías de qida.es (portada.webp, horas.webp, interna.webp, finde.webp), descargadas el 2026-11-02 en su versión de 1.000 px.
-Son propiedad de Qida: se usan solo en esta demo privada para la candidatura de Máximo Fernández Catalán y se retiran si Qida lo pide.
+Aquí van, solo en local, cuatro fotografías de qida.es (portada.webp, horas.webp, interna.webp, finde.webp; versión de 1.000 px).
+Son propiedad de Qida y NO se incluyen en el repositorio. Sin ellas, la web de la demo muestra un fondo de color.
